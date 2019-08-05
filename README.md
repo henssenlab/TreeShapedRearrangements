@@ -5,15 +5,15 @@ This repository contains code and data to reproduce the findings reported on tre
 *Data from the Berlin Neuroblastoma Dataset can only be shared upon request at the moment. This is due to ongoing work in collaborating groups. It will be made public at the time of publication.*
 
 **Circle Calls**
-- `Data/CircleSeq_ecDNA_eccDNA.bed` contains Circle-seq circle calls for our dataset
-- `Data/ALL_patients_WGS_inferredcircles_eccDNA.txt` contains WGS-inferred circle calls for our dataset (eccDNA only)
-- `Data/ALL_patients_WGS_inferredcircles_ecDNA.txt` contains WGS-inferred circle calls for our dataset (ecDNA only)
-- `Data/CircleSeq_CircleSeq_Svaba` contains Svaba-based SV calls based on circle-supporting reads for base pair-accurate reassembly of circle junctions
+- `Data/CircleseqCircles.bed` contains Circle-seq circle calls for our dataset
+- `Data/WGSinferredCircles_eccDNA.txt` contains WGS-inferred circle calls for our dataset (eccDNA only)
+- `Data/WGSinferredCircles_ecDNA.txt` contains WGS-inferred circle calls for our dataset (ecDNA only)
+- `Data/CircleSeq_CircleReads_Svaba/` contains Svaba-based SV calls based on circle-supporting reads for base pair-accurate reassembly of circle junctions
 
 **WGS Rearrangement Calls**
 - `Data/MergedSV_StrictestFiltering_CircleSeqCircleAnnotation.txt` are the merged and filtered interchromosomal rearrangement calls (see Structural Variant Merging) which were overlapped with Circle-seq circle calls for classification *(available upon request)*
 - `Data/MergedSV_StrictestFiltering_WGSCircleAnnotation.txt` are the merged and filtered interchromosomal rearrangement calls (see Structural Variant Merging) which were overlapped with WGS-inferred circle calls for classification *(available upon request)*
-- `Data/PedPanCanSV.csv` contains structural variants in the DKFZ Pediatric Pan-Cancer dataset published by Gröbner et al. 2018 (data downloaded from the corresponding [R2 platform](https://hgserver1.amc.nl/cgi-bin/r2/main.cgi?&dscope=DKFZ_PED&option=about_dscope))
+- `Data/PedPanCanSVs.csv` contains structural variants in the DKFZ Pediatric Pan-Cancer dataset published by Gröbner et al. 2018 (data downloaded from the corresponding [R2 platform](https://hgserver1.amc.nl/cgi-bin/r2/main.cgi?&dscope=DKFZ_PED&option=about_dscope))
 - `Data/PedPanCanMeta.csv` contains metadata such as the tumor entity for the DKFZ Pediatric Pan-Cancer dataset
 
 **Expression Data**
@@ -68,8 +68,8 @@ Tree-shaped rearrangement regions are referred to as *Palm Trees* throughout the
 
 #### Breakpoint Analysis
 - `SVAnalyseSvabaBreakpoints.R` investigates sequence characteristics of base pair-accurate reconstruction of Circle-seq circle junctions
-- `MemeAnalyis.sh` runs MEME on several breakpoint-associated sequences
-- `myHomology.R` obtains microhomology estimates for accurate breakpoint coordinates from the reference genome 
+- `MemeAnalysis.sh` runs MEME on several breakpoint-associated sequences
+- `myHomology.R` obtains microhomology estimates for accurate breakpoint coordinates from the reference genome
 
 ### Contact
 If you have any questions concerning code or data, please do not hesitate to contact us at henssenlab@gmail.com.
