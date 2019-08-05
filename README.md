@@ -1,4 +1,4 @@
-This repository contains code and data to reproduce the findings reported on tree-shaped rearrangements in Koche et al. (under review).
+This repository contains code and data from Koche et al. (under review).
 
 ### Data
 
@@ -8,7 +8,6 @@ This repository contains code and data to reproduce the findings reported on tre
 - `Data/CircleseqCircles.bed` contains Circle-seq circle calls for our dataset
 - `Data/WGSinferredCircles_eccDNA.txt` contains WGS-inferred circle calls for our dataset (eccDNA only)
 - `Data/WGSinferredCircles_ecDNA.txt` contains WGS-inferred circle calls for our dataset (ecDNA only)
-- `Data/CircleSeq_CircleReads_Svaba/` contains Svaba-based SV calls based on circle-supporting reads for base pair-accurate reassembly of circle junctions
 
 **WGS Rearrangement Calls**
 - `Data/MergedSV_StrictestFiltering_CircleSeqCircleAnnotation.txt` are the merged and filtered interchromosomal rearrangement calls (see Structural Variant Merging) which were overlapped with Circle-seq circle calls for classification *(available upon request)*
@@ -21,11 +20,10 @@ This repository contains code and data to reproduce the findings reported on tre
 - `Data/peifer_54nb_fpkms.txt` is RNA-seq data published by Peifer et al.
 
 **Clinical Data**
-- `Data/ClinicalData.csv` specifies risk group and survival data for each patient
+- `Data/ClinicalData.csv` specifies risk group and survival data as available at the time of submission
 
 **Other**
 - `Data/BroadIntervals/b37-[...]_MinusBlckLst.txt` specifies the mappable, non-blacklisted genome we use for randomization analyses
-
 
 ### Code
 
