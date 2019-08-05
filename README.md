@@ -56,16 +56,16 @@ Tree-shaped rearrangement regions are referred to as *Palm Trees* throughout the
 - `ExpressionAnalysis.R` screens for deregulated genes close to palm tree associated rearrangements
 
 #### Association with circular DNA
-- `RegionSampling.R` contains sampling methods to randomly sample regions from masked or unmasked genome
-- `OverlapCircleSeqCircleCalls.R` statistically analyses the degree of overlap between palm tree regions and circles as called from Circle-Seq
-- `OverlapWGSCircleCalls.R` statistically analyses the degree of overlap between palm tree regions and circles as called from WGS
-- `MergeWGSCSOverlapPlots.R` merges results from the two preceding scripts for integrative plotting
+- `RegionSampling.R` contains sampling methods to randomly sample regions from a masked or unmasked genome
+- `Overlap[...]CircleCalls.R` statistically analyses the degree of overlap between palm tree regions and eccDNA / ecDNA inferred from WGS / Circle-seq
+- `MergeWGSCSOverlapPlots.R` merges results from the preceding scripts for integrative plotting
 
 #### Clinical Relevance
 - `ClinicalData.R` explores the prognostic significance of palm trees
 
 #### Breakpoint Analysis
-- `SVAnalyseSvabaBreakpoints.R` investigates sequence characteristics of base pair-accurate reconstruction of Circle-seq circle junctions
+- `CircleJunctionAnalyseSvabaBreakpoints.R` investigates sequence characteristics of base pair-accurate reconstruction of Circle-seq circle junctions
+- `SVAnalyseSvabaBreakpoints.R` investigates sequence characteristics of base pair-accurate reconstruction of interchromosomal rearrangements by Svaba
 - `MemeAnalysis.sh` runs MEME on several breakpoint-associated sequences
 - `myHomology.R` obtains microhomology estimates for accurate breakpoint coordinates from the reference genome
 
