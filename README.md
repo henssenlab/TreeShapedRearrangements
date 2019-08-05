@@ -64,8 +64,8 @@ Tree-shaped rearrangement regions are referred to as *Palm Trees* throughout the
 - `ClinicalData.R` explores the prognostic significance of palm trees
 
 #### Breakpoint Analysis
-- `CircleJunctionAnalyseSvabaBreakpoints.R` investigates sequence characteristics of base pair-accurate reconstruction of Circle-seq circle junctions
-- `SVAnalyseSvabaBreakpoints.R` investigates sequence characteristics of base pair-accurate reconstruction of interchromosomal rearrangements by Svaba
+- `CircleJunctionAnalyseSvabaBreakpoints.R` investigates sequence characteristics reconstructed Circle-seq circle junctions
+- `SVAnalyseSvabaBreakpoints.R` investigates sequence characteristics interchromosomal rearrangements calls by Svaba
 - `MemeAnalysis.sh` runs MEME on several breakpoint-associated sequences
 - `myHomology.R` obtains microhomology estimates for accurate breakpoint coordinates from the reference genome
 
