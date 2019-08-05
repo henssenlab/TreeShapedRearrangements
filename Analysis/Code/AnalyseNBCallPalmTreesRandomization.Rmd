@@ -1,0 +1,386 @@
+---
+title: "Randomization Analyis of Palm Tree Calling"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, echo=F, warning=F, message=F}
+rm(list=ls())
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(ggrepel)
+source("~/Desktop/PalmTrees/Analysis/Code/CustomThemes.R")
+```
+
+As a reminder, palm tree region calling has two steps. 
+
+- *Filter step*: Filter out chromosome pairs with more than 5 rearrangements between them, "deduplicate" similar rearrangements (both breakpoints wihtin XX of each other) and then filter out chromosomes with (still) high number of interchromosomal rearrangements. 
+
+- *Sliding window step*: Find regions with at least 3 rearrangements wihtin a 4Mb window. 
+
+That is why I designed an approach where I generate random interchromosomal rearrangements. We  redistribute the number of rearrangements after the filter step over the chromosome pairs still left after filtering. 
+
+I analysed this for our cohort and the pediatric pancan cohort. For each sample, I generated 500 shuffled datasets and analysed them on the cluster. Also, I analysed different cutoffs of how many rearrangements must cluster within 4Mb for a palm tree to be called.
+
+## Neuroblastoma cohort
+
+```{r}
+load("~/Desktop/PalmTrees/Analysis/WorkspaceData/NBCallPalmTreesRandomization_Analysed.Rdata")
+compare_real_vs_random = compare_real_vs_random %>% filter(!is.na(Sample))
+compare_real_vs_random_kwithinwindow3 = compare_real_vs_random_kwithinwindow3 %>% filter(!is.na(Sample))
+```
+
+```{r}
+compare_real_vs_random_kwithinwindow3 %>%
+  filter(real_npt>0) %>%
+  summarise(n_Samples = nrow(compare_real_vs_random_kwithinwindow3),
+            n_Samples_with_PalmTree = n(),
+            Percent = 100 * n()/nrow(compare_real_vs_random_kwithinwindow3))
+```
+
+I think we can estimate our false-discovery rate for detecting "palm tree postiive cases" by randomizing breakpoints in the palm-tree positive samples and then see how many percent of them we still expect to have a alm tree:
+
+```{r}
+compare_real_vs_random_kwithinwindow3 %>%
+  filter(real_npt>0) %>%
+  summarise(estimatedFDR = mean(ProbOfPT))
+```
+ 
+Some more details for samples with a palm tree in the analysis:
+
+- PTSamples_Real = Number of samples with a palm tree in the data set
+- Expected_PTSamples_Random = Expected number of samples with a palm tree for randomized breakpoints
+- Mean_Tx = Mean number of tx per sample before filtering
+- Median/Mean_PT_Real = Median/Mean number of palm trees per sample (excluding samples with no palm tree) 
+- Median/Mean_PT_Simulated = Expected median/mean number of palm trees per sample for randomized breakpoints (excluding samples with no palm tree) 
+
+```{r}
+compare_real_vs_random_kwithinwindow3 %>% 
+  filter(real_npt>0) %>%
+  summarise(PTSamples_Real = sum(real_npt>0),
+            Expected_PTSamples_Random = sum(ProbOfPT),
+            Mean_Tx = mean(nTx),
+            Median_PT_Real = median(real_npt),
+            Mean_PT_Real = mean(real_npt),
+            Median_PT_Simulated = median(MeanPTNumber),
+            Mean_PT_Simulated = mean(MeanPTNumber))
+```
+
+Basically the same table, but now all samples are taken into account, i.e. also ones with no palm tree identified by or algorithm.
+ 
+```{r}
+compare_real_vs_random_kwithinwindow3 %>% 
+  summarise(PTSamples_Real = sum(real_npt>0),
+            Expected_PTSamples_Random = sum(ProbOfPT),
+            Mean_Tx = mean(nTx),
+            Median_PT_Real = median(real_npt),
+            Mean_PT_Real = mean(real_npt),
+            Median_PT_Simulated = median(MeanPTNumber),
+            Mean_PT_Simulated = mean(MeanPTNumber))
+```
+
+We can explore for each sample how likely the sample it to show a palm tree after reshuffling. This is not a simple proportional dependency because it largely depends on how much the breakpoints are clustered in the data, i.e. how many breakpoints are filtered out by the filtering step.
+
+```{r, warning=F, message=F}
+compare_real_vs_random_kwithinwindow3 %>%
+  ggplot(aes(x=nTx, y=ProbOfPT)) + 
+  geom_point() + 
+  ylab("Probability of a\nRandom Palm Tree")  +
+  xlab("Rearrangements Pre-Filtering")+ 
+  scale_x_log10() + 
+  geom_text_repel(aes(label=ifelse(ProbOfPT>0.1 | nTx > 50, Sample, NA))) +
+  theme_kons1() +
+  ggtitle("NB Cohort") +
+  ggsave("~/Desktop/PalmTrees/Results/Figures/PalmTreeFDR/NB_ProbOfRandomPalmTree.pdf",
+          height=3, width=5, useDingbats=F)
+```
+
+We can compare the identified number of palm trees per sample and the expected number of palm trees after reshuffling. All of the samples have clearly more palm trees without shuffling.
+
+```{r, warning=F, message=F}
+compare_real_vs_random_kwithinwindow3 %>%
+  ggplot(aes(y=real_npt, x=MeanPTNumber)) + 
+  geom_point() + 
+  xlab("Expected Palm Trees\nfor Shuffled Bkp")  +
+  ylab("Number of Palm Trees\n in Real Data") + 
+  geom_text_repel(aes(label=ifelse(MeanPTNumber>0.1 | real_npt > 1, Sample, NA))) +
+  geom_abline(linetype="dashed") +
+  scale_x_log10() + scale_y_log10() +
+  theme_kons1() +
+  ggtitle("NB Cohort") +
+  ggsave("~/Desktop/PalmTrees/Results/Figures/PalmTreeFDR/NB_PTCountRandomVsReal.pdf",
+          height=3, width=5, useDingbats=F)
+```
+
+```{r}
+compare_real_vs_random_kwithinwindow3 %>% arrange(desc(MeanPTNumber))
+```
+
+## Neuroblastoma Cohort - Threshold
+
+We were interested in how the minimum number rearrangements within the 4Mb sliding window affects palm tree calling and the estimated false discovery rate. In the manuscript, we use a threshold of 3.
+
+First, we analysed how the percentage of palm tree positive cases in the neuroblastoma cohort is affected by increasing the threshold from 2 to 9. 
+
+```{r, warning=F}
+compare_real_vs_random %>%
+  group_by(KWithinWindow) %>% 
+  summarise(NSamples = n(),
+            PTSamples_Real = sum(real_npt > 0),
+            Percent_Samples_With_PT = 100 * PTSamples_Real / NSamples) %>%
+  ungroup() %>% 
+  complete(KWithinWindow, fill=list(Percent_Samples_With_PT = 0)) %>% 
+  ggplot(aes(x=KWithinWindow, y=Percent_Samples_With_PT)) + 
+  geom_point() +
+  geom_line() + 
+  ylim(0,100) +
+  xlab("Threshold for Rearrangement\nCount within 4Mb") +
+  ylab("Samples with\nPalm Trees [%]") +
+  theme_kons1() +
+  ggtitle("NB Cohort") +
+  ggsave("~/Desktop/PalmTrees/Results/Figures/PalmTreeFDR/NB_ThreshVsPercPT.pdf",
+          height=2, width=3, useDingbats=F)
+
+palmtreesamples_by_k = 
+  compare_real_vs_random %>%
+  group_by(KWithinWindow) %>% 
+  summarise(NSamples = n(),
+            PTSamples_Real = sum(real_npt > 0),
+            Percent_Samples_With_PT = 100 * PTSamples_Real / NSamples) %>%
+  ungroup() %>% 
+  complete(KWithinWindow, fill=list(Percent_Samples_With_PT = 0))
+```
+
+Then, we analyse, how the estimated false discovery rate is affected.
+
+```{r}
+compare_real_vs_random %>%
+  filter(real_npt>0) %>%
+  group_by(KWithinWindow) %>% 
+  summarise(estimatedFDR = mean(ProbOfPT)) %>%
+  ggplot(aes(x=KWithinWindow, y=estimatedFDR)) + 
+  geom_point() +
+  geom_line() + 
+  ylim(0,1) + 
+  xlab("Threshold for Rearrangement\nCount within 4Mb") +
+  ylab("Estim. FDR\n(NB Cohort)") + 
+  theme_kons1() +
+  ggtitle("NB Cohort") +
+  ggsave("~/Desktop/PalmTrees/Results/Figures/PalmTreeFDR/NB_ThreshVsFDR.pdf",
+          height=2, width=3, useDingbats=F)
+
+fpr_by_k = 
+  compare_real_vs_random %>%
+  filter(real_npt>0) %>%
+  group_by(KWithinWindow) %>% 
+  summarise(estimatedFDR = mean(ProbOfPT))
+```
+
+I think we can argue that our choice of k=3 is appropriate for our cohort because decreasing it to leads to a massive increase in false discoveries. Further increasing it, however, would hardly affect FDR and woudl at the same time lower sensitvity (as is evident from the number of palm tree positive samples detected).
+
+## Pediatric Pan Cancer Dataset
+
+```{r, message=F, warning=F}
+rm(list=ls())
+source("~/Desktop/PalmTrees/Analysis/Code/CustomThemes.R")
+load("~/Desktop/PalmTrees/Analysis/WorkspaceData/PedPanCanRandomization_Analysed.Rdata")
+compare_real_vs_random = compare_real_vs_random %>% filter(!is.na(Sample))
+compare_real_vs_random_kwithinwindow3 = 
+  compare_real_vs_random %>% filter(KWithinWindow == 3) %>% filter(!is.na(Sample))
+```
+
+Overall infos about palm tree prevalence in the dataset:
+
+```{r}
+compare_real_vs_random_kwithinwindow3 %>%
+  filter(real_npt>0) %>%
+  summarise(n_Samples = nrow(compare_real_vs_random_kwithinwindow3),
+            n_Samples_with_PalmTree = n(),
+            Percent = 100 * n()/nrow(compare_real_vs_random_kwithinwindow3)) 
+```
+
+Estimated FDR for the whole dataset:
+
+```{r}
+compare_real_vs_random_kwithinwindow3 %>%
+  filter(real_npt>0) %>%
+  summarise(estimatedFDR = mean(ProbOfPT))  
+```
+
+The estimated entity-specific FDR:
+
+```{r}
+compare_real_vs_random_kwithinwindow3 %>%
+  filter(real_npt>0) %>%
+  filter(!is.na(entity)) %>% 
+  group_by(entity) %>% 
+  summarise(estimatedFDR = mean(ProbOfPT))
+```
+
+Some more details for samples with a palm tree in the analysis:
+
+- PTSamples_Real = Number of samples with a palm tree in the data set
+- Expected_PTSamples_Random = Expected number of samples with a palm tree for randomized breakpoints
+- Mean_Tx = Mean number of tx per sample before filtering
+- Median/Mean_PT_Real = Median/Mean number of palm trees per sample (excluding samples with no palm tree) 
+- Median/Mean_PT_Simulated = Expected median/mean number of palm trees per sample for randomized breakpoints (excluding samples with no palm tree) 
+ 
+```{r}
+compare_real_vs_random_kwithinwindow3 %>% 
+  filter(real_npt>0) %>%
+  summarise(PTSamples_Real = sum(real_npt>0),
+            Expected_PTSamples_Random = sum(ProbOfPT),
+            Mean_Tx = mean(nTx),
+            Median_PT_Real = median(real_npt),
+            Mean_PT_Real = mean(real_npt),
+            Median_PT_Simulated = median(MeanPTNumber),
+            Mean_PT_Simulated = mean(MeanPTNumber))
+```
+
+Basically the same table, but now all samples are taken into account, i.e. also ones with no palm tree identified by or algorithm.
+ 
+```{r}
+compare_real_vs_random_kwithinwindow3 %>% 
+  summarise(PTSamples_Real = sum(real_npt>0),
+            Expected_PTSamples_Random = sum(ProbOfPT),
+            Mean_Tx = mean(nTx),
+            Median_PT_Real = median(real_npt),
+            Mean_PT_Real = mean(real_npt),
+            Median_PT_Simulated = median(MeanPTNumber),
+            Mean_PT_Simulated = mean(MeanPTNumber))
+```
+
+
+Split up by entity:
+
+```{r}
+compare_real_vs_random_kwithinwindow3 %>% 
+  group_by(entity) %>% 
+  summarise(PTSamples_Real = sum(real_npt>0),
+            Expected_PTSamples_Random = sum(ProbOfPT),
+            Mean_Tx = mean(nTx),
+            Mean_PT_Real = mean(real_npt),
+            Mean_PT_Simulated = mean(MeanPTNumber)) 
+```
+
+Taking all samples into account, i.e. also samples without any real palmtrees.
+
+```{r}
+compare_real_vs_random_kwithinwindow3 %>% 
+  group_by(entity) %>% 
+  filter(!is.na(entity)) %>% 
+  summarise(PTSamples_Real = sum(real_npt>0),
+            Expected_PTSamples_Random = sum(ProbOfPT),
+            Mean_Tx = mean(nTx),
+            Mean_PT_Real = mean(real_npt),
+            Mean_PT_Simulated = mean(MeanPTNumber)) 
+```
+
+If we choose to exclude ACC and OS, then we end up with ... 
+
+```{r}
+compare_real_vs_random_noACCOS_kwithinwindow3 = 
+  compare_real_vs_random_noACCOS %>% filter(KWithinWindow == 3)
+```
+
+```{r}
+compare_real_vs_random_noACCOS_kwithinwindow3 %>%
+  filter(real_npt>0) %>%
+  summarise(n_Samples = nrow(compare_real_vs_random_noACCOS_kwithinwindow3),
+            n_Samples_with_PalmTree = n(),
+            Percent = 100 * n()/nrow(compare_real_vs_random_noACCOS_kwithinwindow3)) 
+```
+
+... and an overall estimated FDR of ...
+
+```{r}
+compare_real_vs_random_noACCOS_kwithinwindow3 %>%
+  filter(real_npt>0) %>%
+  summarise(estimatedFDR = mean(ProbOfPT)) 
+```
+
+
+## Pediatric Pan Cancer Dataset - Threshold
+
+Exploring FDR for different k-thresholds (k being the number of rearrangements within a 4Mb window).
+
+```{r, warning=F}
+compare_real_vs_random %>%
+  group_by(KWithinWindow) %>% 
+  summarise(NSamples = n(),
+            PTSamples_Real = sum(real_npt > 0),
+            Percent_Samples_With_PT = 100 * PTSamples_Real / NSamples) %>%
+  ungroup() %>% 
+  complete(KWithinWindow, fill=list(Percent_Samples_With_PT = 0)) %>% 
+  ggplot(aes(x=KWithinWindow, y=Percent_Samples_With_PT)) + 
+  geom_point() +
+  geom_line() + 
+  ylim(0,25) +
+  xlab("Threshold of Rearrangement\nCount within 4Mb") +
+  ylab("Samples with\nPalm Trees [%]") +
+  theme_kons1() +
+  ggtitle("PedPanCan") +
+  ggsave("~/Desktop/PalmTrees/Results/Figures/PalmTreeFDR/PedPanCan_ThreshVsPercPT.pdf",
+          height=2, width=3, useDingbats=F)
+```
+
+
+```{r}
+compare_real_vs_random %>%
+  filter(real_npt>0) %>%
+  group_by(KWithinWindow) %>% 
+  summarise(estimatedFDR = mean(ProbOfPT)) %>%
+  ggplot(aes(x=KWithinWindow, y=estimatedFDR)) + 
+  geom_line() + 
+  geom_point() +
+  ylim(0,1) + 
+  xlab("Threshold of Rearrangement\nCount within 4Mb") +
+  ylab("Estim. FDR\n(PedPanCan)") + 
+  theme_kons1() +
+  ggtitle("PedPanCan") +
+  ggsave("~/Desktop/PalmTrees/Results/Figures/PalmTreeFDR/PedPanCan_ThreshVsFDR.pdf",
+          height=2, width=3, useDingbats=F)
+```
+
+```{r, warning=F}
+compare_real_vs_random %>%
+  group_by(KWithinWindow, entity) %>% 
+  summarise(NSamples = n(),
+            PTSamples_Real = sum(real_npt > 0),
+            Percent_Samples_With_PT = 100 * PTSamples_Real / NSamples) %>%
+  ungroup() %>% 
+  complete(KWithinWindow, entity, fill=list(Percent_Samples_With_PT = 0)) %>% 
+  ggplot(aes(x=KWithinWindow, y=Percent_Samples_With_PT, color=entity)) + 
+  geom_point() +
+  geom_line() + 
+  ylim(0,100) +
+  xlab("Threshold of Rearrangement\nCount within 4Mb") +
+  ylab("Samples with\nPalm Trees [%]") +
+  scale_color_manual(values=Set1Palette(20)) +
+  theme_kons1() +
+  ggtitle("PedPanCan") +
+  ggsave("~/Desktop/PalmTrees/Results/Figures/PalmTreeFDR/PedPanCan_ThreshVsPercPT_byEntity.pdf",
+          height=4, width=5, useDingbats=F)
+```
+
+```{r, warning=F}
+compare_real_vs_random %>%
+  filter(real_npt>0) %>%
+  group_by(KWithinWindow, entity) %>% 
+  summarise(estimatedFDR = mean(ProbOfPT)) %>%
+  ungroup() %>% 
+  complete(KWithinWindow, entity, fill=list(estimatedFDR = 0)) %>% 
+  ggplot(aes(x=KWithinWindow, y=estimatedFDR, color=entity)) + 
+  geom_point() +
+  geom_line() + 
+  ylim(0,1) + 
+  xlab("Threshold of Rearrangement Count within 4Mb") +
+  ylab("Estimated FDR") + 
+  scale_color_manual(values=Set1Palette(20)) +
+  theme_kons1() +
+  ggtitle("PedPanCan") +
+  ggsave("~/Desktop/PalmTrees/Results/Figures/PalmTreeFDR/PedPanCan_ThreshVsFDR_byEntity.pdf",
+          height=4, width=5, useDingbats=F)
+```
