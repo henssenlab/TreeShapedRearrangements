@@ -140,6 +140,12 @@ callinginfo = callinginfo %>% filter(!(Sample %in% c("NBL47", "NBL53", "NBL54", 
 clinical_data = clinical_data %>% filter(Sample %in% callinginfo$Sample, !(Sample %in% c("NBL47", "NBL49", "NBL50")))
 
 
+## Write table
+clinical_data %>% 
+  dplyr::select(Sample, Risk, Survival, hasDied, EventFreeSurvival, hadEvent, hasUnionPalmTree, hasUnionPalmTreeWithMYCN) %>%
+  write.table("~/Desktop/PalmTrees/Data/ClinicalData.csv", 
+              quote=F,row.names=F,col.names=T,sep=",")
+
 #############################################
 
 #svcallers = unique(palmtrees$SVCaller)
