@@ -1,5 +1,4 @@
 rm(list=ls())
-
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -7,59 +6,33 @@ source("~/Desktop/PalmTrees/Analysis/Code/ParseSVCallerData.R")
 source("~/Desktop/PalmTrees/Analysis/Code/AlmostDuplicateBreakpoints.R")
 source("~/Desktop/PalmTrees/Analysis/Code/CallHighDensityRegion.R")
 
+# Load and Parse Raw Data
 tx = parse_pedpancan("~/Desktop/PalmTrees/Data/PedPanCanSVs.csv")
 meta = read.table("~/Desktop/PalmTrees/Data/PedPanCanMeta.csv", sep=";", header=T)
 wgs_samples = meta %>% filter(seq_type == "wgs") %>% .$sample
 tx = tx %>% filter(Sample %in% wgs_samples)
 
-# tx %>% dplyr::select(Sample, ChrA, PosA, ChrB, PosB) %>% write.table("~/Desktop/PalmTrees/Analysis/Shiny/PalmTrees/pedpancan_wgs_txcalls.tsv",
-#                                                                      sep = "\t",
-#                                                                      quote=F,
-#                                                                      row.names=F,
-#                                                                      col.names=T)
-
-#######################  MANUAL FILTERING  ######################                  
-
-# Where are the Translocations across all Samples? Hotspots?
-data.frame(Chr = c(tx$ChrA, tx$ChrB), Pos = c(tx$PosA, tx$PosB)) %>%
-  ggplot(aes(x=Pos)) +
-  facet_wrap(Chr~.) + 
-  geom_histogram(bins=100000)
-
-# Translocations per Sample
-library(ggrepel)
-tx %>%
-  group_by(Sample) %>%
-  summarise(ntx=n()) %>% 
-  ungroup() %>%
-  mutate(Rank = row_number(ntx)) %>%
-  ggplot(aes(x = ntx, y=Rank)) +
-  geom_point() 
-
-zscore = function(v) ( (v-mean(v, na.rm=T)) / (sd(v, na.rm=T)+0.00001) )
-
-# OutlierSamples = tx %>%
-#   group_by(Sample) %>%
-#   summarise(ntx=n()) %>%
-#   ungroup() %>%
-#   mutate(z = zscore(ntx)) %>%
-#   filter(z >= 2) %>%
-#   .$Sample
-# 
-# tx = tx %>% filter(!(Sample %in% OutlierSamples))
-
-tx = tx %>% filter(Sample != "sjos103")
-
+# Save Raw Data for Shiny App
+tx %>% 
+  dplyr::select(Sample, ChrA, PosA, ChrB, PosB) %>% 
+  write.table("~/Desktop/PalmTrees/Analysis/Shiny/PalmTrees/pedpancan_wgs_txcalls.tsv",
+                                                                     sep = "\t",
+                                                                     quote=F,
+                                                                     row.names=F,
+                                                                     col.names=T)
+tx = tx %>% filter(Sample != "sjos103") # Exclude one sample with exceedingly many rearrangements
 tx$Sample  = droplevels(tx$Sample)
 
-#################################################################
 
-#### BEGIN PALM TREE CALLING
+# ------------------------------------------------------------------
+# -------------- PALM TREE CALLING STEP 1: FILTERING ---------------
+# ------------------------------------------------------------------
 
 # keep the original, unfiltered translocation data as tx_original
 tx_original = tx
 
-# filter chromosome pairs with many tx
+# filter chromosome pairs with more than 5 tx between the same chromosome pair for filtering 
+# highly complex rerarrangements, e.g. chromothripsis involving 2 chromosomes
 '%notin%' <- function(x,y)!('%in%'(x,y))
 tx$ChrTuple = as.character(
   mapply(function (a,b) do.call(paste0, as.list(sort(c(a, b)))),
@@ -104,7 +77,7 @@ txdouble = filteredtxdouble
 rm(this_chr_data, this_samplexsvcaller_data, chrs, aldups, filteredtxdouble)
 
 # filter out shattered chromosomes (>50 translocations on one chromosome)
-shattering_threshold = 25
+shattering_threshold = 25 # *2 see below
 samplesXsvcallers = unique(txdouble$SampleSVCaller)
 for (i in 1:length(samplesXsvcallers)){
   this_samplexsvcaller_data = txdouble %>% filter(SampleSVCaller == samplesXsvcallers[i])
@@ -118,6 +91,14 @@ for (i in 1:length(samplesXsvcallers)){
 rm(this_samplexsvcaller_data)
 length_txdouble_afterchromosomeshattering = nrow(txdouble)
 
+
+# ------------------------------------------------------------------
+# ----------- PALM TREE CALLING STEP 2: SLIDING WINDOW -------------
+# ------------------------------------------------------------------
+
+# Set parameters for palm tree calling
+# Palm tree is called whenever "threshold" rearrangments cluster wihtin "windowlength" 
+# Resolution of sliding window steps is "resol" 
 windowlength = 4000000
 resol = 25000
 threshold = 3
@@ -134,7 +115,6 @@ for (sample_i in 1:length(samples)){
       d = d1 %>% filter(ChrA == chrs[chr_i])
       d = as.data.frame(d$PosA)
       colnames(d) = c("PosA")
-      #d = d %>% distinct() # KH 18 12 05
       thispts = call_high_density_region(d$PosA, windowlength, resol, threshold)
       if (length(thispts) > 0){
         thispts$Sample = samples[sample_i]
@@ -149,7 +129,12 @@ for (sample_i in 1:length(samples)){
 
 # exclude Palmtrees e.g. on mitochondria or undefined assembly sequences
 palmtrees = palmtrees %>% filter(isdefchrom(Chr))
-  
+
+
+# ------------------------------------------------------------------
+# ----- GET ALL REARRANGEMENTS FOR EACH PALM TREE (txptinfo) -------
+# ------------------------------------------------------------------
+
 txdouble = txdouble_unfiltered
 txdouble$PalmTreeID = NA
 txdouble_ptinfo = txdouble[0,]
@@ -172,8 +157,12 @@ for (i in 1:nrow(palmtrees)){
 }
 
 txptinfo = txptinfo %>% dplyr::select(-ChrA, -PosA, -ChrB, -PosB)
-
 palmtrees = palmtrees %>% dplyr::select(-Start, -End, -StartContribs, -EndContribs)
+
+
+# ------------------------------------------------------------------
+# ------------------------ SAVE RESULTS ----------------------------
+# ------------------------------------------------------------------
 
 # make GRanges Object for further use
 library(GenomicRanges)
@@ -186,98 +175,3 @@ palmtrees_gr = makeGRangesFromDataFrame(as_tibble(palmtrees),
                                         keep.extra.columns = T)
 seqlevels(palmtrees_gr, pruning.mode="coarse") = seqlevels(BSgenome.Hsapiens.UCSC.hg19)[1:23]
 save.image(file = "~/Desktop/PalmTrees/Analysis/WorkspaceData/saved_callPalmTree_PedPanCan.Rdata")
-
-# load("~/Desktop/PalmTrees/Analysis/WorkspaceData/saved_callPalmTree_PedPanCan.Rdata")
-# 
-# library(circlize)
-# 
-# plot_onesample_onesvcaller = function(palmtrees, txdouble_ptinfo, txdouble, sample, svcaller, fname){
-#   
-#   mycols = rand_color(n=100, luminosity = "dark")
-#   
-#   palmtrees_of_interest = palmtrees %>% filter(Sample == sample, SVCaller == svcaller)
-#   
-#   pdf(file=fname)
-#   circos.clear()
-#   circos.par("start.degree" = 90)
-#   #circos.initializeWithIdeogram(species = "hg19")
-#   circos.initializeWithIdeogram(species = "hg19", plotType = c("axis", "labels"))
-#   text(0, 0, "", cex = 1) 
-#   
-#   palmtrees_bed = palmtrees_of_interest[,c("Chr", "FirstElement", "LastElement")]
-#   
-#   # this is just for plotting
-#   diff = palmtrees_bed$LastElement-palmtrees_bed$FirstElement
-#   if (sum(diff<5000000)>0){
-#     palmtrees_bed[diff<5000000,"FirstElement"] = palmtrees_bed[diff<5000000,"FirstElement"] - (5000000-diff)/2
-#     palmtrees_bed[diff<5000000,"LastElement"] = palmtrees_bed[diff<5000000,"LastElement"] + (5000000-diff)/2
-#   }
-#   
-#   if (nrow(palmtrees_bed)>0){
-#     palmtrees_bed$value1 = 1:nrow(palmtrees_of_interest)
-#     palmtrees_bed$value2 = palmtrees_of_interest$PalmTreeID
-#   }else{
-#     palmtrees_bed$value1 = data.frame()
-#     palmtrees_bed$value2 = data.frame()
-#   }
-#   colnames(palmtrees_bed) = c("chr", "start", "end", "value1", "value2")
-#   
-#   #bed_palmtree_A = data.frame("ChrA"=c(), "PosA"=c(), "PosA"=c(), "PalmTreeIndex"=c())
-#   #bed_palmtree_B = data.frame("ChrA"=c(), "PosA"=c(), "PosA"=c(), "PalmTreeIndex"=c())
-#   
-#   bed_palmtree_A = data.frame()
-#   bed_palmtree_B = data.frame()
-#   if (nrow(palmtrees_bed) > 0){
-#     for (i in 1:nrow(palmtrees_bed)){
-#       palmtree_tx = txdouble_ptinfo %>% filter(PalmTreeID == as.character(palmtrees_bed[i, "value2"]))
-#       palmtree_tx$PalmTreeIndex = i
-#       palmtree_tx = palmtree_tx %>% dplyr::select(PalmTreeChrom, PalmTreePos, TargetChrom, TargetPos, PalmTreeIndex) %>% distinct()
-#       temp = palmtree_tx[,c("PalmTreeChrom", "PalmTreePos", "PalmTreePos", "PalmTreeIndex")]
-#       colnames(temp) = c("chr", "start", "end", "value1")
-#       bed_palmtree_A = rbind(bed_palmtree_A, temp)
-#       colnames(bed_palmtree_A) = c("chr", "start", "end", "value1")
-#       temp = palmtree_tx[,c("TargetChrom", "TargetPos", "TargetPos", "PalmTreeIndex")]
-#       colnames(temp) = c("chr", "start", "end", "value1")
-#       bed_palmtree_B = rbind(bed_palmtree_B, temp)
-#       colnames(bed_palmtree_B) = c("chr", "start", "end", "value1")
-#     }
-#   }
-#   
-#   circos.genomicTrack(as.data.frame(palmtrees_bed),
-#                       panel.fun = function(region, value, ...){
-#                         circos.genomicRect(region, value, col=mycols[value[[1]]], border=NA, ...)
-#                       },
-#                       ylim=c(0,0.2), track.height=0.33*circos.par("track.height"))
-#   
-#   nopalmtree_tx = tx_original %>% filter(Sample == sample, SVCaller == svcaller, isdefchrom(ChrA), isdefchrom(ChrB))
-#   bed_nopalmtree_A = nopalmtree_tx[,c("ChrA", "PosA", "PosA")]
-#   if (nrow(bed_nopalmtree_A) > 0){
-#     bed_nopalmtree_A$value1 = 0
-#     colnames(bed_nopalmtree_A) = c("chr", "start", "end", "value1")
-#   }
-#   
-#   bed_nopalmtree_B = nopalmtree_tx[,c("ChrB", "PosB", "PosB")]
-#   if (nrow(bed_nopalmtree_B) > 0){
-#     bed_nopalmtree_B$value1 = 0
-#     colnames(bed_nopalmtree_B) = c("chr", "start", "end", "value1")
-#   }
-#   circos.genomicLink(bed_nopalmtree_A, bed_nopalmtree_B, col="lightgray")
-#   
-#   if (nrow(palmtrees_bed) > 0) circos.genomicLink(bed_palmtree_A, bed_palmtree_B, col=mycols[bed_palmtree_A[,"value1"]])
-#   
-#   title(paste(sample, svcaller))
-#   dev.off()
-#   circos.clear()
-# }
-# 
-# samples = unique(as.character(tx$Sample))
-# svcallers = unique(as.character(tx$SVCaller))
-# for (sai in 1:length(samples)){
-#   print(samples[sai])
-#   for (svi in 1:length(svcallers)){
-#     if (nrow(tx %>% filter(Sample == samples[sai], SVCaller == svcallers[svi]))>0){
-#       plot_onesample_onesvcaller(palmtrees, txptinfo, txdouble, samples[sai], svcallers[svi], paste0("~/Desktop/PalmTrees/Results/Figures/CircosPlotsPedPanCan/", as.character(svcallers[svi]), "/", as.character(samples[sai]), as.character(svcallers[svi]), "PalmTreeCircos.pdf"))
-#     }
-#   }
-# }
-# 

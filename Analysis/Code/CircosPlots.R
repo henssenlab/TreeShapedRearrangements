@@ -9,13 +9,6 @@ setwd("~/Desktop/PalmTrees")
 load("~/Desktop/PalmTrees/Analysis/WorkspaceData/saved_callPalmTree.Rdata")
 
 plot_onesample_onesvcaller = function(palmtrees, txdouble_ptinfo, txdouble, sample, svcaller, fname){
-  
-  # palmtrees = palmtrees
-  # txdouble_ptinfo  =txptinfo
-  # txdouble = txdouble
-  # sample = samples[sai]
-  # svcaller = svcallers[svi]
-  # fname = "test.pdf"
 
   mycols = rand_color(n=100, luminosity = "dark")
   
@@ -45,10 +38,7 @@ plot_onesample_onesvcaller = function(palmtrees, txdouble_ptinfo, txdouble, samp
     palmtrees_bed$value2 = data.frame()
   }
   colnames(palmtrees_bed) = c("chr", "start", "end", "value1", "value2")
-  
-  #bed_palmtree_A = data.frame("ChrA"=c(), "PosA"=c(), "PosA"=c(), "PalmTreeIndex"=c())
-  #bed_palmtree_B = data.frame("ChrA"=c(), "PosA"=c(), "PosA"=c(), "PalmTreeIndex"=c())
-  
+
   bed_palmtree_A = data.frame()
   bed_palmtree_B = data.frame()
   if (nrow(palmtrees_bed) > 0){
@@ -107,99 +97,3 @@ for (sai in 1:length(samples)){
     }
   }
 }
- 
-
-########
-
-# sample = "NB2001"
-# svcaller = "Novobreak"
-# plot_onesample_onesvcaller_pluscnv = function(ascat_cnv, palmtrees, txdouble_ptinfo, txdouble, sample, svcaller, fname){
-#   
-#   mycols = rand_color(n=100, luminosity = "dark")
-#   
-#   palmtrees_of_interest = palmtrees %>% filter(Sample == sample, SVCaller == svcaller)
-#   
-#   #pdf(file=fname)
-#   circos.clear()
-#   circos.par("start.degree" = 90)
-#   #circos.initializeWithIdeogram(species = "hg19")
-#   circos.initializeWithIdeogram(species = "hg19", plotType = c("axis", "labels"))
-#   text(0, 0, "", cex = 1) 
-#   
-#   # Plotting Copy Number Variants
-#   ascat_cnv$logFC = log10((ascat_cnv$TumorTotalCopyNumber + 0.001) / (ascat_cnv$NormalTotalCopyNumber + 0.001))
-#   ascat_cnv_bed = ascat_cnv %>% filter(Sample == sample) %>% dplyr::select(Chr, Start, End, logFC)
-#   circos.genomicTrack(as.data.frame(ascat_cnv_bed), 
-#                       panel.fun = function(region, value, ...) {
-#                         circos.genomicRect(region, value[[1]], ytop.column = 1, ybottom = 0, 
-#                                            col = ifelse(value[[1]] > 0, "steelblue", ifelse(value[[1]] < 0, "red", "gray50")), ...)
-#                       },
-#                       track.height=0.5*circos.par("track.height"))
-#   
-#   # Plot Palm Trees
-#   palmtrees_bed = palmtrees_of_interest[,c("Chr", "FirstElement", "LastElement")]
-#   
-#   # this is just for plotting
-#   diff = palmtrees_bed$LastElement-palmtrees_bed$FirstElement
-#   if (sum(diff<5000000)>0){
-#     palmtrees_bed[diff<5000000,"FirstElement"] = palmtrees_bed[diff<5000000,"FirstElement"] - (5000000-diff)/2
-#     palmtrees_bed[diff<5000000,"LastElement"] = palmtrees_bed[diff<5000000,"LastElement"] + (5000000-diff)/2
-#   }
-#   
-#   if (nrow(palmtrees_bed)>0){
-#     palmtrees_bed$value1 = 1:nrow(palmtrees_of_interest)
-#     palmtrees_bed$value2 = palmtrees_of_interest$PalmTreeID
-#   }else{
-#     palmtrees_bed$value1 = data.frame()
-#     palmtrees_bed$value2 = data.frame()
-#   }
-#   colnames(palmtrees_bed) = c("chr", "start", "end", "value1", "value2")
-#   
-#   #bed_palmtree_A = data.frame("ChrA"=c(), "PosA"=c(), "PosA"=c(), "PalmTreeIndex"=c())
-#   #bed_palmtree_B = data.frame("ChrA"=c(), "PosA"=c(), "PosA"=c(), "PalmTreeIndex"=c())
-#   
-#   bed_palmtree_A = data.frame()
-#   bed_palmtree_B = data.frame()
-#   if (nrow(palmtrees_bed) > 0){
-#     for (i in 1:nrow(palmtrees_bed)){
-#       palmtree_tx = txdouble_ptinfo %>% filter(PalmTreeID == as.character(palmtrees_bed[i, "value2"]))
-#       palmtree_tx$PalmTreeIndex = i
-#       palmtree_tx = palmtree_tx %>% dplyr::select(PalmTreeChrom, PalmTreePos, TargetChrom, TargetPos, PalmTreeIndex) %>% distinct()
-#       temp = palmtree_tx[,c("PalmTreeChrom", "PalmTreePos", "PalmTreePos", "PalmTreeIndex")]
-#       colnames(temp) = c("chr", "start", "end", "value1")
-#       bed_palmtree_A = rbind(bed_palmtree_A, temp)
-#       colnames(bed_palmtree_A) = c("chr", "start", "end", "value1")
-#       temp = palmtree_tx[,c("TargetChrom", "TargetPos", "TargetPos", "PalmTreeIndex")]
-#       colnames(temp) = c("chr", "start", "end", "value1")
-#       bed_palmtree_B = rbind(bed_palmtree_B, temp)
-#       colnames(bed_palmtree_B) = c("chr", "start", "end", "value1")
-#     }
-#   }
-#   
-#   circos.genomicTrack(as.data.frame(palmtrees_bed),
-#                       panel.fun = function(region, value, ...){
-#                         circos.genomicRect(region, value, col=mycols[value[[1]]], border=NA, ...)
-#                       },
-#                       ylim=c(0,0.2), track.height=0.5*circos.par("track.height"))
-#   
-#   nopalmtree_tx = tx_original %>% filter(Sample == sample, SVCaller == svcaller, isdefchrom(ChrA), isdefchrom(ChrB))
-#   bed_nopalmtree_A = nopalmtree_tx[,c("ChrA", "PosA", "PosA")]
-#   if (nrow(bed_nopalmtree_A) > 0){
-#     bed_nopalmtree_A$value1 = 0
-#     colnames(bed_nopalmtree_A) = c("chr", "start", "end", "value1")
-#   }
-#   
-#   bed_nopalmtree_B = nopalmtree_tx[,c("ChrB", "PosB", "PosB")]
-#   if (nrow(bed_nopalmtree_B) > 0){
-#     bed_nopalmtree_B$value1 = 0
-#     colnames(bed_nopalmtree_B) = c("chr", "start", "end", "value1")
-#   }
-#   circos.genomicLink(bed_nopalmtree_A, bed_nopalmtree_B, col="lightgray")
-#   
-#   if (nrow(palmtrees_bed) > 0) circos.genomicLink(bed_palmtree_A, bed_palmtree_B, col=mycols[bed_palmtree_A[,"value1"]])
-#   
-#   title(paste(sample, svcaller))
-#   #dev.off()
-#   circos.clear()
-# }
-# 
