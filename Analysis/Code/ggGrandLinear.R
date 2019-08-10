@@ -2,6 +2,10 @@ library(ggplot2)
 library(dplyr)
 library(BSgenome.Hsapiens.UCSC.hg19)
 
+# Some functions to make grand linear plots using ggplot 
+
+# Helper functions to convert Chr:Pos coordinates into ggplot
+# x-axis values
 getGrandLinearLayout = function(genome, chrorder=1:24){
   genome = as.data.frame(seqinfo(genome))
   genome$Chr = row.names(genome)
@@ -24,23 +28,8 @@ getGrandLinearColor = function(chr, pos, genome, chrorder=1:24){
   return(genome[match(chr, genome$Chr), "color"])
 }
 
-# ggGrandLinear = function(chr, pos, y, genome=BSgenome.Hsapiens.UCSC.hg19, chrorder=1:24){
-#   data = data.frame(chr=chr, pos=getGrandLinearCoord(chr, pos, genome, chrorder), color=getGrandLinearColor(chr, pos, genome, chrorder), y=y)
-#   GrandLinearLayout = getGrandLinearLayout(genome, chrorder)
-#   f=ggplot(data=data, aes(x=pos, y=y, color=color, group=chr)) + 
-#    # scale_y_continuous(labels=scales::comma) +
-#     scale_x_continuous(breaks = GrandLinearLayout$mid, labels=GrandLinearLayout$Chr) +
-#     theme_minimal() +
-#     theme(axis.text=element_text(angle=90), panel.grid.minor=element_blank(), panel.grid.major.x=element_blank(), plot.title = element_text(size=10, hjust = 0.5, face="bold")) +
-#     scale_color_manual(values=c("#6baed6", "#08519c")) +
-#     geom_vline(color="lightgray", xintercept=c(GrandLinearLayout$start, GrandLinearLayout$end)) +
-#     ylab("Circle Read Count") +
-#     xlab("") +
-#     ylab("") +
-#     guides(colour=FALSE)
-#   return(f)
-# }
 
+# Creates a grand linear ggplot object. Geoms and other ggplot attributes can be added.  
 ggGrandLinear = function(chr, pos, y, genome=BSgenome.Hsapiens.UCSC.hg19, chrorder=1:24){
   data = data.frame(chr=chr, pos=getGrandLinearCoord(chr, pos, genome, chrorder), color=getGrandLinearColor(chr, pos, genome, chrorder), y=y)
   GrandLinearLayout = getGrandLinearLayout(genome, chrorder)
@@ -64,6 +53,8 @@ ggGrandLinear = function(chr, pos, y, genome=BSgenome.Hsapiens.UCSC.hg19, chrord
   return(f)
 }
 
+
+# Creates a grand linear ggplot object without lines separating chromosomes. 
 ggGrandLinearNoChrSep = function(chr, pos, y, genome=BSgenome.Hsapiens.UCSC.hg19, chrorder=1:24){
   data = data.frame(chr=chr, pos=getGrandLinearCoord(chr, pos, genome, chrorder), color=getGrandLinearColor(chr, pos, genome, chrorder), y=y)
   GrandLinearLayout = getGrandLinearLayout(genome, chrorder)
@@ -83,6 +74,8 @@ ggGrandLinearNoChrSep = function(chr, pos, y, genome=BSgenome.Hsapiens.UCSC.hg19
   return(f)
 }
 
+
+# Creates a grand linear ggplot object with grouping variable 
 ggGrandLinearCond = function(chr, pos, y, condition, genome=BSgenome.Hsapiens.UCSC.hg19, chrorder=1:24){
   data = data.frame(chr=chr, pos=getGrandLinearCoord(chr, pos, genome, chrorder), color=getGrandLinearColor(chr, pos, genome, chrorder), y=y, condition=condition)
   GrandLinearLayout = getGrandLinearLayout(genome, chrorder)
@@ -98,6 +91,8 @@ ggGrandLinearCond = function(chr, pos, y, condition, genome=BSgenome.Hsapiens.UC
   return(f)
 }
 
+
+# Creates a grand linear density plot
 ggGrandLinearGenomeWideDensity = function(chr, pos, bw=2, genome=BSgenome.Hsapiens.UCSC.hg19, chrorder=1:24){
   data = data.frame(chr=chr, pos=getGrandLinearCoord(chr, pos, genome, chrorder), color=getGrandLinearColor(chr, pos, genome, chrorder))
   GrandLinearLayout = getGrandLinearLayout(genome, chrorder)
@@ -115,18 +110,15 @@ ggGrandLinearGenomeWideDensity = function(chr, pos, bw=2, genome=BSgenome.Hsapie
   return(f)
 }
 
+
+# Creates a grand linear histogram plot. Returns ggplot object.
 ggGrandLinearGenomeWideHistogram = function(data, chr, pos, binwidthMb=25, genome=BSgenome.Hsapiens.UCSC.hg19, chrorder=1:24){
-  
   data = as.data.frame(data)
-  
   data$chr=data[,chr]
   data$pos=getGrandLinearCoord(data[,chr], data[,pos], genome, chrorder)
   data$color=getGrandLinearColor(data[,chr], data[,pos], genome, chrorder)
-  
   GrandLinearLayout = getGrandLinearLayout(genome, chrorder)
-  
   breaks = unlist(mapply(function(a,b) seq(a,b,by=(binwidthMb*1000000)), GrandLinearLayout$start, GrandLinearLayout$end))
-  
   f=ggplot(data=data, aes(x=pos, fill=color, group=chr)) + 
     # scale_y_continuous(labels=scales::comma) +
     scale_x_continuous(breaks = GrandLinearLayout$mid, labels=GrandLinearLayout$Chr) +
@@ -141,18 +133,15 @@ ggGrandLinearGenomeWideHistogram = function(data, chr, pos, binwidthMb=25, genom
   return(f)
 }
 
+
+# Grand linear visualization of intervals. Returns ggplot object.
 ggGrandLinearIntervals = function(data, chr, pos, binwidthMb=25, genome=BSgenome.Hsapiens.UCSC.hg19, chrorder=1:24){
-  
   data = as.data.frame(data)
-  
   data$chr=data[,chr]
   data$pos=getGrandLinearCoord(data[,chr], data[,pos], genome, chrorder)
   data$color=getGrandLinearColor(data[,chr], data[,pos], genome, chrorder)
-  
   GrandLinearLayout = getGrandLinearLayout(genome, chrorder)
-  
   breaks = unlist(mapply(function(a,b) seq(a,b,by=(binwidthMb*1000000)), GrandLinearLayout$start, GrandLinearLayout$end))
-  
   f=ggplot(data=data, aes(x=pos, fill=color, group=chr)) + 
     # scale_y_continuous(labels=scales::comma) +
     scale_x_continuous(breaks = GrandLinearLayout$mid, labels=GrandLinearLayout$Chr) +
@@ -167,6 +156,8 @@ ggGrandLinearIntervals = function(data, chr, pos, binwidthMb=25, genome=BSgenome
   return(f)
 }
 
+
+# Grand linear visualization of bed files. Returns ggplot object.
 ggGrandLinearBed = function(chr, start, end, y, genome=BSgenome.Hsapiens.UCSC.hg19, chrorder=1:24){
   data = data.frame(chr=chr, start=getGrandLinearCoord(chr, start, genome, chrorder), end=getGrandLinearCoord(chr, end, genome, chrorder), color=getGrandLinearColor(chr, start, genome, chrorder), y=y)
   GrandLinearLayout = getGrandLinearLayout(genome, chrorder)
@@ -191,6 +182,8 @@ ggGrandLinearBed = function(chr, start, end, y, genome=BSgenome.Hsapiens.UCSC.hg
   return(f)
 }
 
+
+# Grand linear plot. Returns ggplot object. Change color by chromosome.
 ggGrandLinearColor = function(chr, pos, y, colors=c("#6baed6", "#08519c"), genome=BSgenome.Hsapiens.UCSC.hg19, chrorder=1:24){
   data = data.frame(chr=chr, pos=getGrandLinearCoord(chr, pos, genome, chrorder), color=getGrandLinearColor(chr, pos, genome, chrorder), y=y)
   GrandLinearLayout = getGrandLinearLayout(genome, chrorder)
@@ -212,5 +205,3 @@ ggGrandLinearColor = function(chr, pos, y, colors=c("#6baed6", "#08519c"), genom
           plot.title = element_text(face="plain", size = 12, hjust=0.5))
   return(f)
 }
-
-
