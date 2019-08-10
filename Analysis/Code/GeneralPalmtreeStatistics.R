@@ -1,13 +1,19 @@
 library(dplyr)
 library(ggplot2)
-
 load("~/Desktop/PalmTrees/Analysis/WorkspaceData/saved_callPalmTree.Rdata")
 
+# Add Palm Tree Size (#bp between first and last rearrangement breakpoint)
 palmtrees = palmtrees %>% mutate(Length = LastElement-FirstElement)
 
+# some *few* translocations are part of two palm trees, 
+# that can happen if two clusters are far apart from each 
+# other and one rearrangement is just in the middle of the
+# other cluster. We decided not to merge these. Now, make sure that 
+# they do not affect overall statistics
 tx_original = distinct(tx_original)
-txptinfo = txptinfo %>% dplyr::select(-PalmTreeID) %>% distinct() # some *few* translocations are part of several palm trees
+txptinfo = txptinfo %>% dplyr::select(-PalmTreeID) %>% distinct() 
 
+# Beautify...
 SVCallerColors = RColorBrewer::brewer.pal(7, "Set1")
 names(SVCallerColors) = unique(tx_original$SVCaller)
 
