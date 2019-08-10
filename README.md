@@ -20,7 +20,7 @@ This repository contains code and data from Koche et al. (under review).
 - `Data/peifer_54nb_fpkms.txt` is RNA-seq data published by Peifer et al.
 
 **Clinical Data**
-- `Data/ClinicalData.csv` specifies risk group and survival data as available at the time of submission
+- `Data/ClinicalData.csv` specifies risk group and survival data
 
 **Other**
 - `Data/BroadIntervals/b37-[...]_MinusBlckLst.txt` specifies the mappable, non-blacklisted genome we use for randomization analyses
