@@ -24,6 +24,7 @@ tx %>%
   distinct() %>% 
   write.table("~/Desktop/PalmTrees/Analysis/Shiny/PalmTrees/berlin_tx.tsv", sep="\t", quote=F, row.names=F, col.names=T)
 
+
 # ------------------------------------------------------------------
 # -------------- PALM TREE CALLING STEP 1: FILTERING ---------------
 # ------------------------------------------------------------------

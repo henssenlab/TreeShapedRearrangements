@@ -1,3 +1,7 @@
+# call_high_density_region takes a vector v of numeric values and identifies
+# regions with at least "threshold" values within "kernellength". Numbers are 
+# rounded to full "resol" steps prior to sliding window counting.
+
 call_high_density_region = function (v, kernellength, resol, threshold=0){
   if (length(v) == 0) return(data.frame())
   v = v[!is.na(v)]
@@ -17,11 +21,8 @@ call_high_density_region = function (v, kernellength, resol, threshold=0){
   df$countperwindowlength = df$count / df$windowlength
   df = df[order(df$a),]
   df$IntervalID = as.factor(cumsum(c(1,diff(df$a)>resol)))
-  
-  df = df %>% group_by(IntervalID) %>% summarise(Start = min(as.numeric(a)), End = max(as.numeric(a)))  # change windowlength, ist missverständlich
-  
-  #df$StartContribs = df$End - (kernellength - 1)
-  #df$EndContribs = df$Start + (kernellength - 1)
+
+  df = df %>% group_by(IntervalID) %>% summarise(Start = min(as.numeric(a)), End = max(as.numeric(a)))  
   
   df$StartContribs = df$Start - (kernellength - 1)
   df$EndContribs = df$End + (kernellength - 1)
@@ -31,10 +32,6 @@ call_high_density_region = function (v, kernellength, resol, threshold=0){
   df$LastElement=NA
   
   for (i in 1:nrow(df)){
-    
-    #df[i, "StartContribs"] = min(df[i, "StartContribs"], df[i, "Start"])
-    #df[i, "EndContribs"] = max(df[i, "EndContribs"], df[i, "End"])
-    
     df[i,"FirstElement"] = min(v[v>=as.numeric(df[i, "StartContribs"]) & v<=as.numeric(df[i, "EndContribs"])])
     df[i,"LastElement"] = max(v[v>=as.numeric(df[i, "StartContribs"]) & v<=as.numeric(df[i, "EndContribs"])])
     df[i,"n"] = length(v[v>=as.numeric(df[i, "StartContribs"]) & v<=as.numeric(df[i, "EndContribs"])])
@@ -45,7 +42,10 @@ call_high_density_region = function (v, kernellength, resol, threshold=0){
   return(df)
 }
 
-#call_high_density_region(c(rep(10,20), 40, 24, 40, 25, 24, 28), 1, 1) 
+
+# Testing Function behavior...
+
+# call_high_density_region(c(rep(10,20), 40, 24, 40, 25, 24, 28), 1, 1) 
 # call_high_density_region(c(rep(10,20), 40, 24, 40, 25, 24, 28), 5, 1, 1)
 # call_high_density_region(c(24, 24, 25, 28), 5, 1, threshold = 1)
 # call_high_density_region(c(rep(10,20), 40, 24, 40, 25, 24, 28), 5, 1, threshold = 2)
@@ -55,5 +55,4 @@ call_high_density_region = function (v, kernellength, resol, threshold=0){
 # call_high_density_region(c(6, 16), 5, 1, threshold=1) 
 # call_high_density_region(c(6, 10), 5, 1, threshold=2) # there is only one interval of length 5 that contains at least two data points: [6,10] 
 # call_high_density_region(c(6, 11), 5, 1, threshold=2) # there is no interval of length 5 that contains at least two data points: [6,10] 
-
-call_high_density_region(c(2,8,9,10,14,16,19),3,1,3)
+# call_high_density_region(c(2,8,9,10,14,16,19),3,1,3)

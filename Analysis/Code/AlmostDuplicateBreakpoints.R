@@ -12,26 +12,32 @@ almost_duplicate_breakpoints = function(v1, v2, dist){
   }
   unique(dups)
 }
-v1 = c(10, 11, 23, 25, 30, 40, 23, 24, 10, 0, 9, 124)
-v2 = c(110, 111, 123, 125, 130, 140, 123, 124, 130, 0, 111, 24)
-dist = 3
-almost_duplicate_breakpoints(v1, v2, dist)
-
-v1 = c()
-v2 = c()
-dist = 10
-almost_duplicate_breakpoints(v1, v2, dist) == c()
-
-v1 = c(NA, 3, 5, 10)
-v2 = c(NA, 2, 4, 10)
-dist = 10
-almost_duplicate_breakpoints(v1, v2, dist) == c()
 
 
+# Testing function behavior
+# v1 = c(10, 11, 23, 25, 30, 40, 23, 24, 10, 0, 9, 124)
+# v2 = c(110, 111, 123, 125, 130, 140, 123, 124, 130, 0, 111, 24)
+# dist = 3
+# almost_duplicate_breakpoints(v1, v2, dist)
+# v1 = c()
+# v2 = c()
+# dist = 10
+# almost_duplicate_breakpoints(v1, v2, dist) == c()
+# v1 = c(NA, 3, 5, 10)
+# v2 = c(NA, 2, 4, 10)
+# dist = 10
+# almost_duplicate_breakpoints(v1, v2, dist) == c()
+
+
+# remove_all_nonunique_elements removes all non-unique elements
+# in vector v
 remove_all_nonunique_elements = function(v){
   v[!(duplicated(v, fromLast=FALSE) | duplicated(v, fromLast=TRUE))]
 }
 
+
+# all_almost_nonunique_elements removes all elements in v that are  
+# within dist of another element in v
 all_almost_nonunique_elements = function(v1, dist){
   if (any(is.na(v1))) stop("input must not contain NaNs")
   if (is.na(dist)) stop("distance must not be NaN")
@@ -45,12 +51,15 @@ all_almost_nonunique_elements = function(v1, dist){
   dups = do.call(c, dups)
   unique(dups[!is.na(dups)])
 }
+
+# Testing function behavior
 # v = c(110, 111, 123, 125, 130, 140, 123, 124, 130, 0, 111, 24)
 # v[-c(all_almost_nonunique_elements(v,5))]
 # v = c(110, 111, 123, 125, 130, 140, 123, 124, 130, 0, 111, 24)
 # v[-c(all_almost_nonunique_elements(v,0))]
 # v = c(10, NA, 20)
 # v[-c(all_almost_nonunique_elements(v,0))]
+
 
 # defines which chromosomes are taken into account, may be used to exclude e.g. chrM
 isdefchrom = function(v){
