@@ -24,7 +24,7 @@ filters <- c("chromosome_name","start","end")
 
 
 # ------------------------------------------------------------------
-# ----------- PLOT GENE EXPRSSION AROUND BREAKPOINTS ---------------
+# ----------- PLOT GENE EXPRESSION AROUND BREAKPOINTS --------------
 # ------------------------------------------------------------------
 
 
