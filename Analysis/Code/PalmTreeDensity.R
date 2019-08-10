@@ -16,15 +16,17 @@ seqlevels(bins, pruning.mode="coarse") = seqlevels(bins)[1:23]
 
 for (i in 1:length(svcallers)){
   
+  # Cross-sample Palm Tree Coverage
   PalmTreeCoverage = 
     coverage(palmtrees_gr[palmtrees_gr$SVCaller == svcallers[i]]) %>%
     binnedAverage(bins, ., "Coverage") %>% 
     data.frame() %>%
     as_tibble()
   
+  # The relative Proportion of Samples that have a Palm Tree at any Genomic Position
   PalmTreeCoverage$Recurrence = ceiling(PalmTreeCoverage$Coverage) / 97
   
-  # Plot Histogram 
+  # Plot Recurrence as Grand Linear Plot 
   f=ggGrandLinear(PalmTreeCoverage$seqnames, PalmTreeCoverage$start, 100*PalmTreeCoverage$Recurrence) + 
     geom_line() +
     ylab("Percent Samples") +
