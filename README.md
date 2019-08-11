@@ -38,7 +38,7 @@ This repository contains code and data from Koche et al. (under review).
 
 #### Detection of Clusters of Rearrangements
 Tree-shaped rearrangement regions are referred to as *Palm Trees* throughout the code.
-- `RunAll.R` runs all required scripts in the correct order
+- `RunAll.R` runs scripts in the correct order
 - `Parse*.R` and `Prepare*.R` are several scripts to read data from different sources and create tidy representations for further analysis
 - `CallPalmTrees.R` uses output of structural variant merging to call palm trees (a.k.a. tree-shaped rearrangements or clusters of rearrangements)
 - `CallPalmTreesPedPanCan.R` calls palm trees on published data from Gröbner et al. 2018 (using the same settings as in CallPalmTrees.R)
