@@ -39,16 +39,19 @@ This repository contains code and data from Koche et al. (under review).
 #### Detection of Clusters of Rearrangements
 Tree-shaped rearrangement regions are referred to as *Palm Trees* throughout the code.
 - `RunAll.R` runs all required scripts in the correct order
-- `Parse*.R` are several scripts to read data from different sources and create tidy representations thereof
-- `CallPalmTrees.R` uses output of structural variant merging to call palm trees (a.k.a. clusters of rearrangements)
+- `Parse*.R` and `Prepare*.R` are several scripts to read data from different sources and create tidy representations for further analysis
+- `CallPalmTrees.R` uses output of structural variant merging to call palm trees (a.k.a. tree-shaped rearrangements or clusters of rearrangements)
 - `CallPalmTreesPedPanCan.R` calls palm trees on published data from Gröbner et al. 2018 (using the same settings as in CallPalmTrees.R)
-- `AnalyseNBCallPalmTreesRandomization.Rmd` explores 500 synthetic datasets for our cohort and the PedPanCan dataset respectively. Synthetic datasets were obtained by randomizing breakpoint positions during palm tree calling. This is used to estimate false-discovery rates due to the number of rearrangements per sample.
+
 
 #### Basic Rearrangement Cluster Statistics
 - `CircosPlots.R` plots the identified rearrangements and palm tree regions
 - `PalmTreeStackPlot.R` creates plots that integrate all CN, SV and Circle-seq information
 - `GeneralPalmTreeStatistics.R` analyses number and length distributions of palm trees
 - `PalmTreeDensity.R` plots genome-wide recurrence of palm trees
+- `PedPanCanStats.R` explores palm tree occurrence in PedPanCan dataset
+- `CompareBerlinCohortToPedPanCan.R` compares palm tree prevalence between the Peifer/Berlin dataset and the PedPanCan neuroblastoma cases
+- `AnalyseNBCallPalmTreesRandomization.Rmd` explores 500 synthetic datasets for our cohort and the PedPanCan dataset respectively. Synthetic datasets were obtained by randomizing breakpoint positions during palm tree calling. This is used to estimate false-discovery rates due to the number of rearrangements per sample.
 
 #### Genes and Gene Expression
 - `PalmTreeGenes.R` analyzes which genes can be found within palm tree regions
@@ -68,6 +71,7 @@ Tree-shaped rearrangement regions are referred to as *Palm Trees* throughout the
 - `SVAnalyseSvabaBreakpoints.R` investigates sequence characteristics interchromosomal rearrangements calls by Svaba
 - `MemeAnalysis.sh` runs MEME on several breakpoint-associated sequences
 - `myHomology.R` obtains microhomology estimates for accurate breakpoint coordinates from the reference genome
+- `Repeats.R` tests for association of breakpoints with repetitive regions
 
 ### Contact
 If you have any questions concerning code or data, please do not hesitate to contact us at henssenlab@gmail.com.
