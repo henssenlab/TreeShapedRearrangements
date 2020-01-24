@@ -1,4 +1,4 @@
-This repository contains code and data from Koche et al. (under review).
+This repository contains code and data from Koche et al. (2019).
 
 ### Data
 

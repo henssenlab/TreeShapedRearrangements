@@ -144,7 +144,7 @@ parse_svaba_allsv = function(indels_fname, svfromindels_fname, sv_fname, sample=
     indels_vcf$PosA = as.numeric(indels_vcf$PosA)
     indels_vcf$ChrB = indels_vcf$ChrA
     indels_vcf$PosB = indels_vcf$PosA + nchar(as.character(indels_vcf$REF)) - 1 # checked, those are exactly the ucsc
-    indels_vcf$Filter = indels_vcf$FILTER
+    indels_vcf$Filter = indels_vcf$FILTERn
     
     indels_vcf = indels_vcf %>% 
       dplyr::select(Sample, Cohort, Class, ChrA, PosA, ChrB, PosB, Filter)

@@ -5,7 +5,7 @@ library(survminer)
 library(survival)
 
 # Open clinical_data
-clinical_data = read.table("~/Desktop/PalmTrees/Data/ClinicalData.csv", header=T, sep=",")
+clinical_data = read.table("/Volumes/Transcend/PalmTrees/Data/ClinicalData.csv", header=T, sep=",")
 
 # Prognostic relevance of palm tree (merged rearrangement calls) for all risk groups
 surv_object <- Surv(time = clinical_data$Survival, event=clinical_data$hasDied)
@@ -18,3 +18,5 @@ mycn_subgroup = clinical_data %>% filter(Risk == "MNA")
 surv_object <- Surv(time = mycn_subgroup$Survival, event=mycn_subgroup$hasDied)
 fit <- survfit(surv_object ~ hasUnionPalmTreeWithMYCN, data = mycn_subgroup)
 ggsurvplot(fit, data = mycn_subgroup, pval = TRUE, palette="Set1", risk.table = T, legend.title = "", legend.labs = c("NoPalmTreeAroundMYCN", "PalmTreeAroundMYCN"), ylab="Overall Survival", xlab = "Days", title = paste0("MYCN-amplified NB"))
+
+#survdiff(surv_object ~ hasUnionPalmTree, data=mycn_subgroup)

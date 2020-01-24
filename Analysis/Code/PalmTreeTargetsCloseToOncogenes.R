@@ -153,11 +153,9 @@ save.image("~/Desktop/PalmTrees/Analysis/WorkspaceData/PalmTreeTargetsCloseToOnc
 # ------------------------------------------------------------------
 # -------------- ANALYSIS, STATISTICS, PLOTS -----------------------
 # ------------------------------------------------------------------
-
-
 rm(list=ls())
-load("~/Desktop/PalmTrees/Analysis/WorkspaceData/PalmTreeTargetsCloseToOncogene.Rdata")
-load("~/Desktop/PalmTrees/Analysis/WorkspaceData/saved_callPalmTree.Rdata")
+load("/Volumes/Transcend/PalmTrees/Analysis/WorkspaceData/PalmTreeTargetsCloseToOncogene.Rdata")
+load("/Volumes/Transcend/PalmTrees/Analysis/WorkspaceData/saved_callPalmTree.Rdata")
 svcallers = "Union"
 
 
@@ -222,8 +220,7 @@ for (gci in 1:length(geneclasses)){
     # Beautify
     cols <- c("#000000", "#FF0000")
     cols.alpha <- c(grDevices::adjustcolor(cols[1], alpha.f = 0.01), cols[2])
-    
-    
+
     # Plot Distribution of Distances to closest COSMIC gene for real dataset vs. 
     # all randomized datasets
     my %>%
@@ -236,8 +233,8 @@ for (gci in 1:length(geneclasses)){
       theme_kons1() + 
       ggtitle(paste0(svcallers[svi],  "_", names(geneclasses)[gci])) +
       xlab("Distance to closest \n gene [kb]") + 
-      ylab("Density") + 
-      ggsave(paste0("~/Desktop/PalmTrees/Results/Figures/DistToCosmic/", svcallers[svi], "_", names(geneclasses)[gci], "_DistanceDistribution.pdf"), height=3, width=3.5)
+      ylab("Density") #+ 
+      #ggsave(paste0("~/Desktop/PalmTrees/Results/Figures/DistToCosmic/", svcallers[svi], "_", names(geneclasses)[gci], "_DistanceDistribution.pdf"), height=3, width=3.5)
     
     
     # Plot Proportion of COSMIC gene-disrupting breakpoints for real vs. 
@@ -248,8 +245,8 @@ for (gci in 1:length(geneclasses)){
       geom_vline(xintercept=percent_disrupt[[gci]][[svi]], color="red") +
       theme_kons1() + 
       ggtitle(paste0(svcallers[svi],  "_", names(geneclasses)[gci])) +
-      xlab("Relative Proportion of \n Translocations that disrupt \n a gene \n Red = Observed Proportion") +
-      ggsave(paste0("~/Desktop/PalmTrees/Results/Figures/DistToCosmic/", svcallers[svi],  "_", names(geneclasses)[gci], "_Disruption.pdf"), height=3, width=3)
+      xlab("Relative Proportion of \n Translocations that disrupt \n a gene \n Red = Observed Proportion") #+
+      #ggsave(paste0("~/Desktop/PalmTrees/Results/Figures/DistToCosmic/", svcallers[svi],  "_", names(geneclasses)[gci], "_Disruption.pdf"), height=3, width=3)
     
     
     # Same analysis but split by Circle-seq circle-genome classification of rearrangements
@@ -273,8 +270,8 @@ for (gci in 1:length(geneclasses)){
       theme_kons1() + 
       ggtitle(paste0(svcallers[svi],  "_", names(geneclasses)[gci])) +
       xlab("Distance to closest \n gene [kb]") + 
-      ylab("Density") + 
-      ggsave(paste0("~/Desktop/PalmTrees/Results/Figures/DistToCosmic/", svcallers[svi], "_", names(geneclasses)[gci], "_DistanceDistribution_CircleSeqCircleGenome.pdf"), height=3, width=3.5)
+      ylab("Density") #+ 
+      #ggsave(paste0("~/Desktop/PalmTrees/Results/Figures/DistToCosmic/", svcallers[svi], "_", names(geneclasses)[gci], "_DistanceDistribution_CircleSeqCircleGenome.pdf"), height=3, width=3.5)
     circle_genome_classes = c("circle-circle", "circle-genome", "genome-genome")
     for (thisclass in circle_genome_classes){
       n_thisclass = this_txpt %>% filter(CircleSeqCircles_CircleGenomeClass == thisclass) %>% nrow()
@@ -306,8 +303,8 @@ for (gci in 1:length(geneclasses)){
       theme_kons1() + 
       ggtitle(paste0(svcallers[svi],  "_", names(geneclasses)[gci])) +
       xlab("Distance to closest \n gene [kb]") + 
-      ylab("Density") + 
-      ggsave(paste0("~/Desktop/PalmTrees/Results/Figures/DistToCosmic/", svcallers[svi], "_", names(geneclasses)[gci], "_DistanceDistribution_WGSCircleGenome.pdf"), height=3, width=3.5)
+      ylab("Density") #+ 
+      #ggsave(paste0("~/Desktop/PalmTrees/Results/Figures/DistToCosmic/", svcallers[svi], "_", names(geneclasses)[gci], "_DistanceDistribution_WGSCircleGenome.pdf"), height=3, width=3.5)
     circle_genome_classes = c("circle-circle", "circle-genome", "genome-genome")
     for (thisclass in circle_genome_classes){
       n_thisclass = this_txpt %>% filter(WGSCircles_CircleGenomeClass == thisclass) %>% nrow()
@@ -320,4 +317,9 @@ for (gci in 1:length(geneclasses)){
     }
   }
 }
+
+# These are the results we put in the main text:
+p_mediandist_vector = unlist(p_mediandist)
+names(p_mediandist_vector) = names(geneclasses)
+p.adjust(p_mediandist_vector, method = "holm", n = length(p_mediandist_vector))
 

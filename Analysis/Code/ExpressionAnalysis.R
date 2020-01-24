@@ -240,10 +240,18 @@ for (i in 1:length(palmtreeXtargetchr)){
   selected_breakpoints = this_breakpoints[!duplicated(ceiling(this_breakpoints / 4000000))]
   filtered_completedata[[i]] = this %>% filter(Breakpoint %in% selected_breakpoints)
 }
+filtered_completedata = do.call(rbind, filtered_completedata)
 
+# Number of tumors and breakpoints in heatmap to put in figure legend
+filtered_completedata %>% 
+  filter(SVCaller == "Union") %>%
+  full_join(filtered_completedata %>% filter(SVCaller=="Union", GeneDistFromBreakpoint <= 10) %>% group_by(Event) %>% summarise(MeanModZ=mean(ModifiedZScore)), by="Event") %>%
+  mutate(Event = factor(filtered_completedata %>% filter(SVCaller=="Union") %>% .$Event, levels = filtered_completedata %>% filter(SVCaller=="Union") %>% arrange(MeanModZ) %>% .$Event %>% unique())) %>%
+  filter(GeneDistFromBreakpoint <= 10) %>%
+  summarise(nEvents = n_distinct(Event),
+            nSamples = n_distinct(Sample))
 
 # Redo the heatmap, same as above
-filtered_completedata = do.call(rbind, filtered_completedata)
 svcallers = "Union"
 for (svi in 1:length(svcallers)){
   filtered_completedata %>% 

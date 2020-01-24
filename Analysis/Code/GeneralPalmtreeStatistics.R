@@ -1,6 +1,7 @@
+rm(list=ls())
 library(dplyr)
 library(ggplot2)
-load("~/Desktop/PalmTrees/Analysis/WorkspaceData/saved_callPalmTree.Rdata")
+load("/Volumes/Transcend/PalmTrees/Analysis/WorkspaceData/saved_callPalmTree.Rdata")
 
 # Add Palm Tree Size (#bp between first and last rearrangement breakpoint)
 palmtrees = palmtrees %>% mutate(Length = LastElement-FirstElement)
@@ -38,6 +39,33 @@ tx_original %>%
   guides(fill=F) +
   ggsave("~/Desktop/PalmTrees/Results/Figures/NumberTxDistr.pdf", height=4, width=4)
 
+# 7a counts
+tx_original %>% 
+  group_by(SVCaller) %>%
+  summarise(n=n_distinct(Sample))
+
+# 7a updated
+tx_original %>% 
+  group_by(Sample, SVCaller) %>%
+  summarise(nTx = n_distinct(BPID)) %>%
+  ungroup() %>% 
+  ggplot(aes(x=SVCaller, y=nTx, fill=SVCaller)) +
+  geom_violin(draw_quantiles = c(0.25, 0.5, 0.75)) + 
+  scale_y_log10() +
+  theme_classic() + 
+  ylab("Interchr. Rearrangements\nper Patient") + 
+  xlab("")+
+  scale_fill_manual(values=SVCallerColors) +
+  scale_color_manual(values=SVCallerColors) +
+  theme(text = element_text(family = "Helvetica"),
+        axis.text.y = element_text(color="black"),
+        axis.text.x = element_text(color = "black", angle=45,vjust = 1, hjust = 1),
+        axis.text = element_text(size = 14), 
+        axis.title =  element_text(size = 14), 
+        plot.title = element_text(face="plain", size = 12, hjust=0.5))+
+  guides(fill=F) +
+  ggsave("/Volumes/Transcend/PalmTrees/Results/Figures/NumberTxDistrUpdate.pdf", height=4, width=4)
+
 # Ext Figure 7b
 palmtrees %>% 
   #filter(SVCaller %notin% c("Brass", "Novobreak")) %>% 
@@ -45,7 +73,7 @@ palmtrees %>%
   summarise(nTx = n_distinct(PalmTreeID)) %>%
   ungroup() %>% 
   ggplot(aes(x=SVCaller, y=nTx, fill=SVCaller)) +
-  geom_violin() + 
+  geom_violin(draw_quantiles = c(0.25, 0.5, 0.75)) + 
   geom_jitter(color="black", size=1) + 
   scale_y_log10() +
   theme_classic() + 
@@ -59,9 +87,17 @@ palmtrees %>%
         axis.title =  element_text(size = 14), 
         plot.title = element_text(face="plain", size = 12, hjust=0.5))+
   guides(fill=F) +
-  ggsave("~/Desktop/PalmTrees/Results/Figures/NumberPalmTreesDistr.pdf", height=4, width=4,
+  ggsave("/Volumes/Transcend/PalmTrees/Results/Figures/NumberPalmTreesDistrUpdate.pdf", height=4, width=4,
          useDingbats=F)
 
+# counts
+palmtrees %>% 
+  #filter(SVCaller %notin% c("Brass", "Novobreak")) %>% 
+  group_by(Sample, SVCaller) %>%
+  summarise(nTx = n_distinct(PalmTreeID)) %>%
+  ungroup() %>% 
+  group_by(SVCaller) %>%
+  summarise(n=n())
 
 # Ext Fig 7c  
 palmtrees %>% 

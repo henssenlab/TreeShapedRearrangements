@@ -6,9 +6,9 @@ library(ggplot2)
 library(ggrepel)
 library(BSgenome.Hsapiens.UCSC.hg19)
 library(Biostrings)
-source("~/Desktop/PalmTrees/Analysis/Code/CustomThemes.R")
-load("~/Desktop/PalmTrees/Analysis/WorkspaceData/SvabaCircleJunctions.Rdata")
-load("~/Desktop/PalmTrees/Analysis/WorkspaceData/Circles.Rdata")
+source("/Volumes/Transcend/PalmTrees/Analysis/Code/CustomThemes.R")
+load("/Volumes/Transcend/PalmTrees/Analysis/WorkspaceData/SvabaCircleJunctions.Rdata")
+load("/Volumes/Transcend/PalmTrees/Analysis/WorkspaceData/Circles.Rdata")
 
 samples = unique(svaba_junctions$Sample)
 for (sample in samples){
@@ -89,7 +89,15 @@ svaba_junctions %>%
   ggtitle("Svaba Circle Lengths") +
   ggsave("~/Desktop/PalmTrees/Results/Figures/CircleJunctionAnalysis/SvabaCircles_CircleLength_Less1kb.pdf", width=3, height=2, useDingbats=F)
 
+# n circles
+svaba_junctions %>%
+  mutate(CircleLength = PosB-PosA) %>% 
+  filter(CircleLength < 1500) %>%
+  nrow()
 
+# how many samples
+svaba_junctions$Sample %>% unique %>% length
+  
 ##################################################
 ##########        HOMOLOGIES          ############
 ##################################################
@@ -117,6 +125,9 @@ svaba_junctions %>%
   ylab("Count") +
   ggtitle("Svaba Circle Junctions") +
   ggsave("~/Desktop/PalmTrees/Results/Figures/CircleJunctionAnalysis/HomologyLength.pdf", width=3, height=2, useDingbats=F)
+
+# n for paper
+svaba_junctions %>% nrow()
 
 svaba_junctions %>%
   ggplot(aes(x=HomologyLength)) +
@@ -309,6 +320,13 @@ svaba_junctions %>%
   ggtitle("Svaba Circle Junctions") +
   scale_x_continuous(trans="log1p", breaks = c(0,3,10,30,100,300)) +
   ggsave("~/Desktop/PalmTrees/Results/Figures/CircleJunctionAnalysis/InsertionLengthsLargerZero_Density.pdf", height=2, width=3)
+
+# n to report in the paper
+svaba_junctions %>%
+  distinct() %>% 
+  filter(InsertionLength>0) %>%
+  nrow()
+
 
 svaba_junctions %>%
   distinct() %>% 

@@ -2,20 +2,20 @@ rm(list=ls())
 library(ggplot2)
 library(dplyr)
 
-load("~/Desktop/PalmTrees/Results/Figures/RelationToCSCirclesEcc/CSCircleEccOverlap_RandomSampling.Rdata")
+load("/Volumes/Transcend/PalmTrees/Results/Figures/RelationToCSCirclesEcc/CSCircleEccOverlap_RandomSampling.Rdata")
 all_all_random_regions = all_random_regions
 
-load("~/Desktop/PalmTrees/Results/Figures/RelationToCSCirclesEc/CSCircleEcOverlap_RandomSampling.Rdata")
+load("/Volumes/Transcend/PalmTrees/Results/Figures/RelationToCSCirclesEc/CSCircleEcOverlap_RandomSampling.Rdata")
 all_all_random_regions = rbind(all_all_random_regions, all_random_regions)
 
-load("~/Desktop/PalmTrees/Results/Figures/RelationToWGSCirclesEcc/WGSCircleEccOverlap_RandomSampling.Rdata")
+load("/Volumes/Transcend/PalmTrees/Results/Figures/RelationToWGSCirclesEcc/WGSCircleEccOverlap_RandomSampling.Rdata")
 all_all_random_regions = rbind(all_all_random_regions, all_random_regions)
 
-load("~/Desktop/PalmTrees/Results/Figures/RelationToWGSCirclesEc/WGSCircleEcOverlap_RandomSampling.Rdata")
+load("/Volumes/Transcend/PalmTrees/Results/Figures/RelationToWGSCirclesEc/WGSCircleEcOverlap_RandomSampling.Rdata")
 all_all_random_regions = rbind(all_all_random_regions, all_random_regions)
 
-#load("~/Desktop/PalmTrees/Analysis/WorkspaceData/saved_callPalmTree.Rdata")
-#load("~/Desktop/PalmTrees/Analysis/WorkspaceData/Circles.Rdata")
+#load("/Volumes/Transcend/PalmTrees/Analysis/WorkspaceData/saved_callPalmTree.Rdata")
+#load("/Volumes/Transcend/PalmTrees/Analysis/WorkspaceData/Circles.Rdata")
 
 palmtree_ids_cs = palmtrees %>% filter(Sample %in% unique(cscircles_ecc$Sample)) %>% .$PalmTreeID %>% unique()
 palmtree_ids_wgs = palmtrees %>% .$PalmTreeID %>% unique()
@@ -28,15 +28,15 @@ for (svi in 1:length(svcallers)){
 
   thissvcaller_all_random_regions %>%
     filter(DrawID == 1, CircleCalling == "CircleSeq_ecDNA") %>%
-    dplyr::select(PalmTreeID, PalmTreeOverlap, CircleCalling) %>% 
-    write.table(paste0("~/Desktop/PalmTrees/Results/Tables/", svcallers[svi], "_OverlapPalmTreeWithCSecDNA.txt"),
-                quote=F, sep="\t", col.names=T, row.names=F)
+    dplyr::select(PalmTreeID, PalmTreeOverlap, CircleCalling) #%>% 
+    #write.table(paste0("/Volumes/Transcend/PalmTrees/Results/Tables/", svcallers[svi], "_OverlapPalmTreeWithCSecDNA.txt"),
+  #quote=F, sep="\t", col.names=T, row.names=F)
 
   thissvcaller_all_random_regions %>%
     filter(DrawID == 1, CircleCalling == "CircleSeq_eccDNA") %>%
-    dplyr::select(PalmTreeID, PalmTreeOverlap, CircleCalling) %>% 
-    write.table(paste0("~/Desktop/PalmTrees/Results/Tables/", svcallers[svi], "_OverlapPalmTreeWithCSeccDNA.txt"),
-                quote=F, sep="\t", col.names=T, row.names=F)
+    dplyr::select(PalmTreeID, PalmTreeOverlap, CircleCalling) #%>% 
+    #write.table(paste0("/Volumes/Transcend/PalmTrees/Results/Tables/", svcallers[svi], "_OverlapPalmTreeWithCSeccDNA.txt"),
+  #quote=F, sep="\t", col.names=T, row.names=F)
 
   thissvcaller_all_random_regions %>%
     filter(DrawID == 1, CircleCalling == "WGS_ecDNA") %>%
@@ -53,9 +53,9 @@ for (svi in 1:length(svcallers)){
               OverlapMin10Perc = mean(OverlapMin10Perc),
               OverlapMin50Perc = mean(OverlapMin50Perc),
               OverlapMin75Perc = mean(OverlapMin75Perc),
-              OverlapMin95Perc = mean(OverlapMin95Perc)) %>% 
-    write.table(paste0("~/Desktop/PalmTrees/Results/Tables/", svcallers[svi], "_OverlapPalmTreeWithWGSecDNA.txt"),
-                quote=F, sep="\t", col.names=T, row.names=F)
+              OverlapMin95Perc = mean(OverlapMin95Perc)) #%>% 
+  #write.table(paste0("/Volumes/Transcend/PalmTrees/Results/Tables/", svcallers[svi], "_OverlapPalmTreeWithWGSecDNA.txt"),
+  #quote=F, sep="\t", col.names=T, row.names=F)
     
   thissvcaller_all_random_regions %>%
       filter(DrawID == 1, CircleCalling == "WGS_eccDNA") %>%
@@ -71,9 +71,9 @@ for (svi in 1:length(svcallers)){
                 OverlapMin10Perc = mean(OverlapMin10Perc),
                 OverlapMin50Perc = mean(OverlapMin50Perc),
                 OverlapMin75Perc = mean(OverlapMin75Perc),
-                OverlapMin80Perc = mean(OverlapMin80Perc)) %>% 
-    write.table(paste0("~/Desktop/PalmTrees/Results/Tables/", svcallers[svi], "_OverlapPalmTreeWithWGSeccDNA.txt"),
-                quote=F, sep="\t", col.names=T, row.names=F)
+                OverlapMin80Perc = mean(OverlapMin80Perc)) #%>% 
+    #write.table(paste0("/Volumes/Transcend/PalmTrees/Results/Tables/", svcallers[svi], "_OverlapPalmTreeWithWGSeccDNA.txt"),
+  #quote=F, sep="\t", col.names=T, row.names=F)
 
 MeanDistr = thissvcaller_all_random_regions %>%
     group_by(DrawID, CircleCalling) %>%
@@ -114,8 +114,8 @@ MeanDistr = thissvcaller_all_random_regions %>%
           axis.text.x = element_text(color = "black", angle=45,vjust = 1, hjust = 1),
           axis.text = element_text(size = 10),
           axis.title =  element_text(size = 10),
-          plot.title = element_text(face="plain", size = 12, hjust=0.5)) +
-    ggsave(paste0("~/Desktop/PalmTrees/Results/Figures/RelationToWGSandCSCircles/WGSandCSCircleOverlap_", svcallers[svi], "_PermutationTest.pdf"), height=4, width=5)
+          plot.title = element_text(face="plain", size = 12, hjust=0.5)) #+
+    #ggsave(paste0("/Volumes/Transcend/PalmTrees/Results/Figures/RelationToWGSandCSCircles/WGSandCSCircleOverlap_", svcallers[svi], "_PermutationTest.pdf"), height=4, width=5)
 
   ## Plotting
   distr = rbind(data.frame(Overlap = thissvcaller_all_random_regions$Overlap,
@@ -142,10 +142,37 @@ MeanDistr = thissvcaller_all_random_regions %>%
           axis.text = element_text(size = 10), 
           axis.title =  element_text(size = 10), 
           plot.title = element_text(face="plain", size = 12, hjust=0.5)) + 
-    ggtitle(paste0("Overlap of Palm Trees with \neccDNA and ecDNA \n(Circle-Seq and WGS calls; ", svcallers[svi], ")")) +
-    ggsave(paste0("~/Desktop/PalmTrees/Results/Figures/RelationToWGSandCSCircles/WGSandCSCircleOverlap_", svcallers[svi], "_PalmTreesVsRandomIntervals.pdf"), height=3, width=4)
+    ggtitle(paste0("Overlap of Palm Trees with \neccDNA and ecDNA \n(Circle-Seq and WGS calls; ", svcallers[svi], ")")) #+
+      #ggsave(paste0("/Volumes/Transcend/PalmTrees/Results/Figures/RelationToWGSandCSCircles/WGSandCSCircleOverlap_", svcallers[svi], "_PalmTreesVsRandomIntervals.pdf"), height=3, width=4)
 }
 
-all_all_random_regions %>% filter(DrawID == 1) %>% group_by(SVCaller, CircleCalling) %>% summarise(n=n_distinct(PalmTreeID)) %>%
-  write.table(file="~/Desktop/PalmTrees/Results/Figures/RelationToWGSandCSCircles/PalmTreesPerSVCaller.txt", sep="\t", quote=FALSE, col.names=TRUE, row.names=FALSE)
+all_all_random_regions %>% filter(DrawID == 1) %>% group_by(SVCaller, CircleCalling) %>% summarise(n=n_distinct(PalmTreeID)) #%>%
+#write.table(file="/Volumes/Transcend/PalmTrees/Results/Figures/RelationToWGSandCSCircles/PalmTreesPerSVCaller.txt", sep="\t", quote=FALSE, col.names=TRUE, row.names=FALSE)
 
+# ------------------------------------------------------------------------------
+# This is  for the paper
+# ------------------------------------------------------------------------------
+
+# I base the calculation of empirical p values on the (r+1)/(n+1), see e.g. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC379244/ for the argument in favor of that
+
+p_WGS_ecDNA = (sum(MeanDistr %>% filter(CircleCalling=="WGS_ecDNA") %>% .$MeanOverlap >= palmtreeoverlap_wgs_ec) + 1) / 
+  (length(MeanDistr %>% filter(CircleCalling=="WGS_ecDNA") %>% .$MeanOverlap) + 1)
+
+p_WGS_eccDNA = (sum(MeanDistr %>% filter(CircleCalling=="WGS_eccDNA") %>% .$MeanOverlap >= palmtreeoverlap_wgs_ecc) + 1) / 
+  (length(MeanDistr %>% filter(CircleCalling=="WGS_eccDNA") %>% .$MeanOverlap) + 1)
+
+p_CS_eccDNA = (sum(MeanDistr %>% filter(CircleCalling=="CircleSeq_eccDNA") %>% .$MeanOverlap >= palmtreeoverlap_cs_ecc) + 1) / 
+  (length(MeanDistr %>% filter(CircleCalling=="CircleSeq_eccDNA") %>% .$MeanOverlap) + 1)
+
+p_CS_ecDNA = (sum(MeanDistr %>% filter(CircleCalling=="CircleSeq_ecDNA") %>% .$MeanOverlap >= palmtreeoverlap_cs_ec) + 1) / 
+  (length(MeanDistr %>% filter(CircleCalling=="CircleSeq_ecDNA") %>% .$MeanOverlap) + 1)
+
+pvals = c(p_CS_eccDNA, p_CS_ecDNA, p_WGS_eccDNA, p_WGS_ecDNA)
+names(pvals) = c("p_CS_eccDNA", "p_CS_ecDNA", "p_WGS_eccDNA", "p_WGS_ecDNA")
+pvals_adj = p.adjust(pvals, method="BH")
+
+# The adjusted p value of the test
+print(pvals_adj)
+
+# The number of cluster regions behind the test
+print(all_all_random_regions %>% filter(DrawID == 1, SVCaller == "Union") %>% group_by(CircleCalling) %>% summarise(n=n_distinct(PalmTreeID)))

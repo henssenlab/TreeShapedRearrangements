@@ -182,6 +182,30 @@ ggGrandLinearBed = function(chr, start, end, y, genome=BSgenome.Hsapiens.UCSC.hg
   return(f)
 }
 
+ggGrandLinearBedColor = function(chr, start, end, y, color, genome=BSgenome.Hsapiens.UCSC.hg19, chrorder=1:24){
+  data = data.frame(chr=chr, start=getGrandLinearCoord(chr, start, genome, chrorder), end=getGrandLinearCoord(chr, end, genome, chrorder), color=color, y=y)
+  GrandLinearLayout = getGrandLinearLayout(genome, chrorder)
+  f=ggplot(data=data, aes(x=start, xend=end, y=y, yend=y, color=color, fill=color, group=chr)) + 
+    geom_segment(size=2) + 
+    # scale_y_continuous(labels=scales::comma) +
+    scale_x_continuous(breaks = GrandLinearLayout$mid, labels=GrandLinearLayout$Chr) +
+    theme_classic() +
+    theme(axis.text=element_text(angle=90), panel.grid.minor=element_blank(), panel.grid.major=element_blank(), plot.title = element_text(size=10, hjust = 0.5, face="bold")) +
+    #scale_color_manual(values=c("#6baed6", "#08519c")) +
+    #scale_color_manual(values=c("#000000", "#000000")) +
+    geom_vline(color="lightgray", size=0.1, xintercept=c(GrandLinearLayout$start, GrandLinearLayout$end)) +
+    xlab("") +
+    ylab("") +
+    guides(color=FALSE) +
+    theme(text = element_text(family = "Helvetica"),
+          axis.text.y = element_text(color="black"),
+          axis.text.x = element_text(color = "black", angle=45,vjust = 1, hjust = 1),
+          axis.text = element_text(size = 10), 
+          axis.title =  element_text(size = 10), 
+          plot.title = element_text(face="plain", size = 12, hjust=0.5))
+  return(f)
+}
+
 
 # Grand linear plot. Returns ggplot object. Change color by chromosome.
 ggGrandLinearColor = function(chr, pos, y, colors=c("#6baed6", "#08519c"), genome=BSgenome.Hsapiens.UCSC.hg19, chrorder=1:24){

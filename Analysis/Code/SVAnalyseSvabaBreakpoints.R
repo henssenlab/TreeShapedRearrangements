@@ -5,17 +5,17 @@ library(tidyr)
 library(GenomicRanges)
 library(ggplot2)
 library(ggrepel)
-source("~/Desktop/PalmTrees/Analysis/Code/CustomThemes.R")
-source("~/Desktop/PalmTrees/Analysis/Code/ParseAllSV.R")
+source("/Volumes/Transcend/PalmTrees/Analysis/Code/CustomThemes.R")
+source("/Volumes/Transcend/PalmTrees/Analysis/Code/ParseAllSV.R")
 
-load("~/Desktop/PalmTrees/Analysis/WorkspaceData/SvabaSV.Rdata")
+load("/Volumes/Transcend/PalmTrees/Analysis/WorkspaceData/SvabaSV.Rdata")
 svaba_ins_hom = svaba_allsv %>% 
   select(Sample, BNDPairID, Insertion, InsertionLength, Homology, HomologyLength,
          ChrA, PosA, ChrB, PosB, DirectionA, DirectionB) %>%
   mutate(SampleBNDPairID = paste0(Sample, "_", BNDPairID))
 
-load("~/Desktop/PalmTrees/Analysis/WorkspaceData/MergedTx.Rdata")
-load("~/Desktop/PalmTrees/Analysis/WorkspaceData/saved_callPalmTree.Rdata")
+load("/Volumes/Transcend/PalmTrees/Analysis/WorkspaceData/MergedTx.Rdata")
+load("/Volumes/Transcend/PalmTrees/Analysis/WorkspaceData/saved_callPalmTree.Rdata")
 
 union_txptinfo = txptinfo %>% filter(SVCaller == "Union")
 
@@ -56,6 +56,10 @@ svaba_wgscircles %>%
   .$hasHomology %>% mean()
 # 10.0% have a microhomology of at least 5bp
 
+# n
+svaba_wgscircles %>%
+  nrow()
+
 svaba_wgscircles %>%
   dplyr::select(BPID, HomologyLength) %>%
   distinct() %>%
@@ -77,8 +81,14 @@ svaba_wgscircles %>%
   xlab("Homology Length at Breakpoint [bp]") +
   ylab("Density")
 
+# How many breakpoints do we look at?
 svaba_wgscircles %>%
-  dplyr::select(BPID, HomologyLength) %>%
+       dplyr::select(BPID, HomologyLength) %>%
+       distinct() %>% 
+       nrow() %>% print()
+
+svaba_wgscircles %>%
+  #dplyr::select(BPID, HomologyLength) %>% # if I uncomment that line I get 319 samples (submission)
   distinct() %>% 
   ggplot(aes(x=HomologyLength)) +
   geom_histogram(fill="steelblue", color=NA) + 
@@ -86,7 +96,7 @@ svaba_wgscircles %>%
   xlab("Homology Length at Breakpoint [bp]") +
   ylab("Count") +
   ggtitle("Svaba Interchr. Rearrangements") +
-  ggsave("~/Desktop/PalmTrees/Results/Figures/Homologies/HomologyLength.pdf", width=3, height=2, useDingbats=F)
+  ggsave("/Volumes/Transcend/PalmTrees/Results/Figures/Homologies/HomologyLength_n320.pdf", width=3, height=2, useDingbats=F)
 
 svaba_wgscircles %>%
   dplyr::select(Sample, BPID, HomologyLength) %>%
@@ -196,7 +206,7 @@ names(svaba_wgscircles_seqs_xstr) =svaba_wgscircles_seqs$BPID
 writeXStringSet(svaba_wgscircles_seqs_xstr, paste0("~/Desktop/PalmTrees/Results/Figures/Homologies/SvabaTx_Homologies.fa"))
 
 ## Analyse how that compares to randomized breakpoints
-source("~/Desktop/PalmTrees/Analysis/Code/myHomology.R")
+source("/Volumes/Transcend/PalmTrees/Analysis/Code/myHomology.R")
 library(parallel)
 cores=detectCores()
 
@@ -235,6 +245,7 @@ ggplot(data=svaba_wgscircles, aes(x=HomologyLength-myHomologyLength)) +
 
 unpermuted_svaba = svaba_wgscircles %>% filter(Precision == "PRECISE") %>% dplyr::select(Sample, ChrA, PosA, DirectionA, ChrB, PosB, DirectionB, CircleGenomeClass, isInUnionPT) %>% distinct()
 
+set.seed(42)
 permuted_svaba = unpermuted_svaba
 B_Perm_i = sample.int(nrow(unpermuted_svaba),nrow(unpermuted_svaba),replace=F)
 permuted_svaba[, "ChrB"] = permuted_svaba[B_Perm_i, "ChrB"]
@@ -259,11 +270,24 @@ permuted_and_unpermuted_svaba = bind_rows(permuted_svaba, unpermuted_svaba)
 permuted_and_unpermuted_svaba %>%
   group_by(isPermuted) %>% 
   summarise(MedianHomologyLength = median(myHomologyLength),
-            MeanHomologyLength = mean(myHomologyLength))
+            MeanHomologyLength = mean(myHomologyLength),
+            n = n())
+
+permuted_and_unpermuted_svaba_summarised = 
+  permuted_and_unpermuted_svaba %>% 
+  group_by(isPermuted) %>% 
+  summarise(MedianHomologyLength = median(myHomologyLength),
+            MeanHomologyLength = mean(myHomologyLength),
+            n = n()) 
+  
+# Fold Change
+print(permuted_and_unpermuted_svaba_summarised %>% filter(isPermuted == "Real") %>% .$MeanHomologyLength /
+  permuted_and_unpermuted_svaba_summarised %>% filter(isPermuted == "Randomized") %>% .$MeanHomologyLength)
 
 t.test(myHomologyLength~isPermuted, data=permuted_and_unpermuted_svaba, alternative="two.sided") %>%
   capture.output() %>% 
-  writeLines("~/Desktop/PalmTrees/Results/Figures/Homologies/HomologiesVsRandom_ttest.txt")
+  writeLines("/Volumes/Transcend/PalmTrees/Results/Figures/Homologies/HomologiesVsRandom_ttest_Nov6.txt")
+save.image("/Volumes/Transcend/PalmTrees/Results/Figures/Homologies/HomologiesVsRandom_ttest_Nov6.Rdata")
 
 permuted_and_unpermuted_svaba %>% 
   ggplot(aes(x=myHomologyLength, fill=isPermuted)) + 
@@ -292,6 +316,9 @@ permuted_and_unpermuted_svaba %>%
 ##################################################
 
 ### General Insertion
+
+svaba_wgscircles %>%
+  nrow()
 
 svaba_wgscircles %>%
   dplyr::select(BPID, InsertionLength) %>%

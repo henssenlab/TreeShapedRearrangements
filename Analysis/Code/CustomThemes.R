@@ -12,7 +12,9 @@ theme_kons1 <- function(base_size = 12,
       axis.text.x = element_text(color = "black", angle=45, vjust = 1, hjust = 1),
       axis.text = element_text(size = 10), 
       axis.title =  element_text(size = 10, face="bold"), 
-      plot.title = element_text(face="plain", size = 12, hjust=0.5)
+      plot.title = element_text(face="plain", size = 12, hjust=0.5),
+      strip.background = element_blank(),
+      strip.text  = element_text(face = "bold")
     )
 }
 
