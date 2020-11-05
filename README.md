@@ -1,8 +1,6 @@
-This repository contains code and data from Koche et al. (2019).
+This repository contains code and data from Koche et al. [Extrachromosomal circular DNA drives oncogenic genome remodeling in neuroblastoma](https://doi.org/10.1038/s41588-019-0547-z) *Nat Genet* (2020).
 
 ### Data
-
-*Data from the Berlin Neuroblastoma Dataset can only be shared upon request at the moment. This is due to ongoing work in collaborating groups. It will be made public at the time of publication.*
 
 **Circle Calls**
 - `Data/CircleseqCircles.bed` contains Circle-seq circle calls for our dataset
